@@ -11,6 +11,8 @@
 AsyncWebServer server(80);
 DNSServer dns;
 
+bool isUpload(false);
+
 void begin_web(const String domain, const char *ap_ssid, const char *ap_psk);
 void getFile(AsyncWebServerRequest *request);
 void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
@@ -84,11 +86,11 @@ String listFiles()
 String processor(const String &var)
 {
     if (var == "FREESD")
-        return humanReadableSize(my_SD.SD_info.free_size);
+        return humanReadableSize(SD.totalBytes() - SD.usedBytes());
     if (var == "USEDSD")
-        return humanReadableSize(my_SD.SD_info.used_size);
+        return humanReadableSize(SD.usedBytes());
     if (var == "TOTALSD")
-        return humanReadableSize(my_SD.SD_info.max_size);
+        return humanReadableSize(SD.totalBytes());
     return String();
 }
 
