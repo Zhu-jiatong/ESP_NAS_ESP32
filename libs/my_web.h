@@ -7,6 +7,7 @@
 #include <WiFi.h>
 #include "my_SD.h"
 #include "my_cfg.h"
+#include <AsyncElegantOTA.h>
 
 AsyncWebServer server(80);
 DNSServer dns;
@@ -37,6 +38,7 @@ void begin_web(const String domain, const char *ap_ssid, const char *ap_psk = nu
     server.on("/file", HTTP_GET, handleFile);
     server.onNotFound(handleNotFound);
     server.onFileUpload(handleUpload);
+    AsyncElegantOTA.begin(&server, http_id, http_psk);
     server.begin();
 
     dns.setErrorReplyCode(DNSReplyCode::ServerFailure);

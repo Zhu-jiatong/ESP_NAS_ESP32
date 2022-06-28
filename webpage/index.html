@@ -1,0 +1,59 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+</head>
+
+<body>
+    <div class="header pad">
+        Tony's Private NAS
+    </div>
+    <div class="welcome">
+        Powered by NodeMCU 1.0 (ESP-12E Module) and ESP8266 Arduino Core
+    </div>
+    <div class="main-text pad">
+        <p>Total Card Storage: <span id="totalsd">%TOTALSD%</span></p>
+
+        <p>
+            <button onclick="listFilesButton()">List Files</button>
+            <button onclick="showUploadButtonFancy()">Upload File</button>
+            <button onclick="location.reload()">Reload</button>
+            <button onclick="window.open('/update')">Update Firmware</button>
+        </p>
+        <p id="status"></p>
+        <p id="detailsheader"></p>
+        <p id="details"></p>
+    </div>
+
+    <div id="myModal" class="modal">
+        <span class="close" onclick="document.getElementById('myModal').style.display='none'">&times;</span>
+        <embed class="modal-content" id="img01">
+        <div id="caption"></div>
+    </div>
+
+    <div class="divs pad">
+        Configure WIFI_STA
+        <form id="sta" name="sta"></form>
+        <table>
+            <tr>
+                <td>STA_SSID:</td>
+                <td><input type="text" name="sta_ssid" form="sta" /></td>
+            </tr>
+            <tr>
+                <td>STA_PSK:</td>
+                <td><input type="password" name="sta_psk" form="sta" /></td>
+            </tr>
+            <tr>
+                <td><button onclick="STACfg()">Submit</button></td>
+                <td><button type="reset" form="sta">Reset</button></td>
+            </tr>
+            <p id="STAstatus"></p>
+        </table>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
