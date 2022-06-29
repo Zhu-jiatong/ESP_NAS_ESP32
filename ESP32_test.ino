@@ -4,7 +4,7 @@
 
 void setup()
 {
-    my_SD.begin();
+    SD.begin(SS, SPI, 80000000);
     initOLED();
     touchAttachInterrupt(
         T0, []() {}, 40);
