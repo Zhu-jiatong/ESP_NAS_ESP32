@@ -9,7 +9,6 @@ void setup()
     touchAttachInterrupt(
         T0, []() {}, 40);
     pinMode(connect_LED_pin, OUTPUT);
-    pinMode(request_LED_pin, OUTPUT);
     begin_web(DNS_domain, ap_ssid, ap_psk);
 }
 

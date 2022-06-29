@@ -22,8 +22,6 @@ void handleNotFound(AsyncWebServerRequest *request);
 String listFiles();
 String processor(const String &var);
 String getMime(const String &path);
-void onConnect(WiFiEvent_t event, WiFiEventInfo_t info);
-void onRequest(WiFiEvent_t event, WiFiEventInfo_t info);
 
 void begin_web(const String domain, const char *ap_ssid, const char *ap_psk = nullptr)
 {
@@ -33,11 +31,6 @@ void begin_web(const String domain, const char *ap_ssid, const char *ap_psk = nu
                     delay(500);
                     digitalWrite(connect_LED_pin, LOW); },
                  ARDUINO_EVENT_WIFI_AP_STACONNECTED);
-    WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
-                 {  digitalWrite(request_LED_pin, HIGH);
-                    delay(500);
-                    digitalWrite(request_LED_pin, LOW); },
-                 ARDUINO_EVENT_WIFI_AP_PROBEREQRECVED);
 
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
               { if(!request->authenticate(http_id, http_psk))

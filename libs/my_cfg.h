@@ -12,7 +12,6 @@ const String DNS_domain{"www.tonynas.com"};
 
 const uint wake_time(secToMil(90));
 const uint8_t connect_LED_pin(14);
-const uint8_t request_LED_pin(13);
 inline String humanReadableSize(uint64_t bytes)
 {
     if (bytes < 1024)
