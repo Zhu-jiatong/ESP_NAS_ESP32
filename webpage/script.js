@@ -6,10 +6,17 @@ window.onload = listFilesButton();
 
 function listFilesButton() {
     xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("GET", "/listfiles", false);
-    xmlhttp.send();
+    xmlhttp.open("GET", "/listfiles");
     _("detailsheader").innerHTML = "<h3>Files<h3>";
-    _("details").innerHTML = xmlhttp.responseText;
+    xmlhttp.onload = function () {
+        if (xmlhttp.readyState === xmlhttp.DONE && xmlhttp.status === 200) {
+            _("details").innerHTML = xmlhttp.responseText;
+        } else {
+            _("details").innerHTML = "Loading failed.";
+        }
+    }
+    _("details").innerHTML = "loading...";
+    xmlhttp.send();
 }
 function downloadDeleteButton(filename, action) {
     var urltocall = "/file?name=" + filename + "&action=" + action;
@@ -70,8 +77,7 @@ function completeHandler(event) {
     xmlhttp.open("GET", "/listfiles", false);
     xmlhttp.send();
     _("status").innerHTML = "File Uploaded";
-    _("detailsheader").innerHTML = "<h3>Files<h3>";
-    _("details").innerHTML = xmlhttp.responseText;
+    listFilesButton();
 }
 function errorHandler(event) {
     _("status").innerHTML = "Upload Failed";
