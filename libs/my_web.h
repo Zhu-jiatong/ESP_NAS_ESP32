@@ -54,13 +54,16 @@ void begin_web(const String domain, const char *ap_ssid, const char *ap_psk = nu
 void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
 {
     if (!index) // open the file on first call and store the file handle in the request object
+    {
         request->_tempFile = SD.open("/" + filename, "w");
+        isUpload = true;
+    }
     if (len) // stream the incoming chunk to the opened file
         request->_tempFile.write(data, len);
-
     if (final)
     { // close the file handle as the upload is now done
         request->_tempFile.close();
+        isUpload = false;
         request->redirect("/");
     }
 }

@@ -4,16 +4,12 @@
 
 void setup()
 {
-    SD.begin(SS, SPI, 80000000);
-    initOLED();
-    touchAttachInterrupt(
-        T0, []() {}, 40);
-    pinMode(connect_LED_pin, OUTPUT);
+    custH::begin();
     begin_web(DNS_domain, ap_ssid, ap_psk);
 }
 
 void loop()
 {
     dns.processNextRequest();
-    refresh_main_screen();
+    custH::refresh_main_screen();
 }
