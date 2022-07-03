@@ -70,10 +70,9 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
 
 String listFiles()
 {
-    File root = SD.open("/");
-    File foundfile = root.openNextFile();
+    File root = SD.open("/"), foundfile = root.openNextFile();
     String ret{"<table><tr><th align='left'>Name</th><th align='left'>Size</th><th></th><th></th></tr>"};
-    while (foundfile)
+    for (; foundfile; foundfile = root.openNextFile())
     {
         if (foundfile.isDirectory())
             ret += "<tr align='left'><td>" + String(foundfile.name()) + "</td></tr>";
@@ -85,7 +84,6 @@ String listFiles()
             ret += "<td><button id=\"down\" onclick=\"downloadDeleteButton(\'" + String(foundfile.name()) + "\', \'download\')\">Download</button></td>";
             ret += "<td><button id=\"del\" onclick=\"downloadDeleteButton(\'" + String(foundfile.name()) + "\', \'delete\')\">Delete</button></td></tr>";
         }
-        foundfile = root.openNextFile();
     }
     ret += "</table>";
     foundfile.close();
