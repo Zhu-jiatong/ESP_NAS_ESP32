@@ -75,7 +75,11 @@ String listFiles()
     for (; foundfile; foundfile = root.openNextFile())
     {
         if (foundfile.isDirectory())
-            ret += "<tr align='left'><td>" + String(foundfile.name()) + "</td></tr>";
+        {
+            ret += "<tr align='left'><td>" + String(foundfile.name()) + "</td>";
+            if (SD.exists(String(foundfile.path()) + "/comix.html"))
+                ret += "<td></td><td><button id=\"prev\" onclick=\"window.open(\'/" + String(foundfile.name()) + "/comix.html\'" + ")\">Read</button></td></tr>";
+        }
         else
         {
             ret += "<tr align='left'><td>" + String(foundfile.name()) + "</td>";
