@@ -14,6 +14,7 @@ namespace custH
         touchAttachInterrupt(
             T0, []() {}, 40);
         pinMode(connect_LED_pin, OUTPUT);
+        digitalWrite(connect_LED_pin, annodeRgbDigital(LOW));
     }
 
     void sleep_device()

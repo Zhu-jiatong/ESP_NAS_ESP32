@@ -3,6 +3,8 @@
 
 #define secToMil(sec) (sec * 1000)
 #define milToSec(mil) (mil / 1000)
+#define annodeRgbDigital(val) (1 - val)
+#define annodeRgbAnalog(val) (255 - val)
 
 const char *ap_ssid{"Tony_NAS"};
 const char *ap_psk{""};
