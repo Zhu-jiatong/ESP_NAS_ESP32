@@ -28,7 +28,7 @@ void begin_web(const String domain, const char *ap_ssid, const char *ap_psk = nu
     WiFi.softAP(ap_ssid, ap_psk);
     WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
                  {  digitalWrite(connect_LED_pin, annodeRgbDigital(HIGH));
-                    delay(500);
+                    delay(250);
                     digitalWrite(connect_LED_pin, annodeRgbDigital(LOW)); },
                  ARDUINO_EVENT_WIFI_AP_STACONNECTED);
 
@@ -83,7 +83,7 @@ String listFiles()
         else
         {
             ret += "<tr align='left'><td>" + String(foundfile.name()) + "</td>";
-            ret += "<td>" + humanReadableSize(foundfile.size()) + "</td>";
+            ret += "<td>" + readableSize(foundfile.size()) + "</td>";
             ret += "<td><button id=\"prev\" onclick=\"showPreview(\'" + String(foundfile.name()) + "\')\">Preview</button></td>";
             ret += "<td><button id=\"down\" onclick=\"downloadDeleteButton(\'" + String(foundfile.name()) + "\', \'download\')\">Download</button></td>";
             ret += "<td><button id=\"del\" onclick=\"downloadDeleteButton(\'" + String(foundfile.name()) + "\', \'delete\')\">Delete</button></td></tr>";
@@ -98,11 +98,11 @@ String listFiles()
 String processor(const String &var)
 {
     if (var == "FREESD")
-        return humanReadableSize(SD.totalBytes() - SD.usedBytes());
+        return readableSize(SD.totalBytes() - SD.usedBytes());
     if (var == "USEDSD")
-        return humanReadableSize(SD.usedBytes());
+        return readableSize(SD.usedBytes());
     if (var == "TOTALSD")
-        return humanReadableSize(SD.totalBytes());
+        return readableSize(SD.totalBytes());
     return String();
 }
 

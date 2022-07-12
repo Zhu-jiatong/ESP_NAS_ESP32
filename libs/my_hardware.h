@@ -48,9 +48,8 @@ namespace custH
         display.clearDisplay();
         display.setCursor(0, 0);
         display.printf("AP_Client: %i\n", WiFi.softAPgetStationNum());
-        display.printf("Size: %s\n", humanReadableSize(SD.cardSize()));
+        display.printf("SD_Size: %s\n", readableSize(SD.cardSize()));
         display.println("CPU temp: " + String(temperatureRead(), 2) + " C");
-        display.printf("Upload: %s\n", (isUpload ? "Uploading..." : "Idle"));
         display.printf("To sleep: %i sec", update_sleep_timer());
         display.display();
     }
