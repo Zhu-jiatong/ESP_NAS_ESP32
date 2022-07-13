@@ -19,6 +19,7 @@ void getFile(AsyncWebServerRequest *request);
 void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
 void handleFile(AsyncWebServerRequest *request);
 void handleNotFound(AsyncWebServerRequest *request);
+void handleCardinfo(AsyncWebServerRequest *request);
 String listFiles();
 String processor(const String &var);
 String getMime(const String &path);
@@ -35,12 +36,13 @@ void begin_web(const String domain, const char *ap_ssid, const char *ap_psk = nu
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
               { if(!request->authenticate(http_id, http_psk))
                     return request->requestAuthentication();
-                request->send(SD, "/index.html", String(), false, processor); });
+                request->send(SD, "/index.html"); });
     server.on("/listfiles", HTTP_GET, [](AsyncWebServerRequest *request)
               { if(!request->authenticate(http_id, http_psk))
                     return request->requestAuthentication();
                 request->send(200, "text/html", listFiles()); });
     server.on("/file", HTTP_GET, handleFile);
+    server.on("/cardinfo", HTTP_GET, handleCardinfo);
     server.onNotFound(handleNotFound);
     server.onFileUpload(handleUpload);
     AsyncElegantOTA.begin(&server, http_id, http_psk);
@@ -95,15 +97,9 @@ String listFiles()
     return ret;
 }
 
-String processor(const String &var)
+void handleCardinfo(AsyncWebServerRequest *request)
 {
-    if (var == "FREESD")
-        return readableSize(SD.totalBytes() - SD.usedBytes());
-    if (var == "USEDSD")
-        return readableSize(SD.usedBytes());
-    if (var == "TOTALSD")
-        return readableSize(SD.totalBytes());
-    return String();
+    request->send(200, "text/plain", readableSize(SD.totalBytes()) + "\n" + readableSize(SD.usedBytes()) + "\n" + readableSize(SD.totalBytes() - SD.usedBytes()));
 }
 
 void handleNotFound(AsyncWebServerRequest *request)

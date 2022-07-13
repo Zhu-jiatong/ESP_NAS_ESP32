@@ -2,7 +2,20 @@ function _(el) {
     return document.getElementById(el);
 }
 
-window.onload = listFilesButton();
+window.onload = function () {
+    listFilesButton();
+    ajax = new XMLHttpRequest();
+    ajax.open("GET", "/cardinfo");
+    ajax.onload = function () {
+        if (ajax.readyState === ajax.DONE && ajax.status === 200) {
+            var data = ajax.responseText.split("\n");
+            _("totalsd").innerHTML = data[0];
+            _("usedsd").innerHTML = data[1];
+            _("freesd").innerHTML = data[2];
+        }
+    }
+    ajax.send();
+}
 
 function listFilesButton() {
     xmlhttp = new XMLHttpRequest();
@@ -15,8 +28,8 @@ function listFilesButton() {
             _("details").innerHTML = "Loading failed.";
         }
     }
-    _("details").innerHTML = "loading...";
     xmlhttp.send();
+    _("details").innerHTML = "loading...";
 }
 function downloadDeleteButton(filename, action) {
     var urltocall = "/file?name=" + filename + "&action=" + action;
