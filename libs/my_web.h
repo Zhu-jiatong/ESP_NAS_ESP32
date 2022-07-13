@@ -99,7 +99,7 @@ String listFiles()
 
 void handleCardinfo(AsyncWebServerRequest *request)
 {
-    request->send(200, "text/plain", readableSize(SD.totalBytes()) + "\n" + readableSize(SD.usedBytes()) + "\n" + readableSize(SD.totalBytes() - SD.usedBytes()));
+    request->send(200, "text/plain", String(SD.totalBytes() / 1.0) + "\n" + String(SD.usedBytes() / 1.0) + "\n" + readableSize(SD.usedBytes()) + "\n" + readableSize(SD.totalBytes() - SD.usedBytes()));
 }
 
 void handleNotFound(AsyncWebServerRequest *request)

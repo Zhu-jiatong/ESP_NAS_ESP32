@@ -9,9 +9,10 @@ window.onload = function () {
     ajax.onload = function () {
         if (ajax.readyState === ajax.DONE && ajax.status === 200) {
             var data = ajax.responseText.split("\n");
-            _("totalsd").innerHTML = data[0];
-            _("usedsd").innerHTML = data[1];
-            _("freesd").innerHTML = data[2];
+            _("cardinfo").max = data[0];
+            _("cardinfo").value = data[1];
+            _("usedsd").innerHTML = data[2];
+            _("freesd").innerHTML = data[3];
         }
     }
     ajax.send();
