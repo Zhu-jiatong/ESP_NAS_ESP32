@@ -7,15 +7,18 @@ window.onload = function () {
     ajax = new XMLHttpRequest();
     ajax.open("GET", "/cardinfo");
     ajax.onload = function () {
-        if (ajax.readyState === ajax.DONE && ajax.status === 200) {
-            var data = ajax.responseText.split("\n");
+        if (this.status == 200) {
+            var data = this.responseText.split("\n");
             _("cardinfo").max = data[0];
             _("cardinfo").value = data[1];
             _("usedsd").innerHTML = data[2];
             _("freesd").innerHTML = data[3];
+        } else {
+            _("usedsd").innerHTML = _("freesd").innerHTML = "Error";
         }
     }
     ajax.send();
+    _("usedsd").innerHTML = _("freesd").innerHTML = "...";
 }
 
 function listFilesButton() {
@@ -23,15 +26,12 @@ function listFilesButton() {
     xmlhttp.open("GET", "/listfiles");
     _("detailsheader").innerHTML = "<h3>Files<h3>";
     xmlhttp.onload = function () {
-        if (xmlhttp.readyState === xmlhttp.DONE && xmlhttp.status === 200) {
-            _("details").innerHTML = xmlhttp.responseText;
-        } else {
-            _("details").innerHTML = "Loading failed.";
-        }
+        _("details").innerHTML = this.status == 200 ? this.responseText : 'Loading failed.';
     }
     xmlhttp.send();
     _("details").innerHTML = "loading...";
 }
+
 function downloadDeleteButton(filename, action) {
     var urltocall = "/file?name=" + filename + "&action=" + action;
     xmlhttp = new XMLHttpRequest();
@@ -48,6 +48,7 @@ function downloadDeleteButton(filename, action) {
         window.open(urltocall, "_blank");
     }
 }
+
 function showUploadButtonFancy() {
     _("detailsheader").innerHTML = "<h3>Upload File<h3>"
     _("status").innerHTML = "";
@@ -99,6 +100,7 @@ function errorHandler(event) {
 function abortHandler(event) {
     _("status").innerHTML = "inUpload Aborted";
 }
+
 function STACfg() {
     var urltocall = "/postSTA?sta_ssid=" + document.sta.sta_ssid.value + "&sta_psk=" + document.sta.sta_psk.value;
     xmlhttp = new XMLHttpRequest();
