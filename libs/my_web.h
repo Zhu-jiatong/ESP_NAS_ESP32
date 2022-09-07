@@ -32,7 +32,7 @@ void begin_web(const String domain, const char *ap_ssid, const char *ap_psk = nu
     WiFi.softAP(ap_ssid, ap_psk);
     WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
                  {  digitalWrite(connect_LED_pin, annodeRgbDigital(HIGH));
-                    delay(250);
+                    delay(125);
                     digitalWrite(connect_LED_pin, annodeRgbDigital(LOW)); },
                  ARDUINO_EVENT_WIFI_AP_STACONNECTED);
 

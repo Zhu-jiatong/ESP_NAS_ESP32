@@ -171,17 +171,10 @@
     }
 
     this.onload = function () {
-        console.log("Hello");
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", "/systemInfo");
-        xhr.onload = function () {
-            if (this.status == 200) {
-                var data = JSON.parse(this.responseText);
-                for (const key in data)
-                    _(key).innerHTML = data[key];
-            }
-        }
-        xhr.send();
+        fetch('/systemInfo').then(res => res.json()).then(data => {
+            for (const key in data)
+                _(key).innerHTML = data[key];
+        })
     }
 </script>
 
