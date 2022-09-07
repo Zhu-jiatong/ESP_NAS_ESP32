@@ -4,31 +4,17 @@ function _(el) {
 
 window.onload = function () {
     listFilesButton();
-    ajax = new XMLHttpRequest();
-    ajax.open("GET", "/cardinfo");
-    ajax.onload = function () {
-        if (this.status == 200) {
-            var data = this.responseText.split("\n");
-            _("cardinfo").max = data[0];
-            _("cardinfo").value = data[1];
-            _("usedsd").innerHTML = data[2];
-            _("freesd").innerHTML = data[3];
-        } else {
-            _("usedsd").innerHTML = _("freesd").innerHTML = "Error";
-        }
-    }
-    ajax.send();
+    fetch('/cardinfo').then(res => res.json()).then(data => {
+        _("cardinfo").max = data['max'];
+        _("cardinfo").value = data['val'];
+        _("usedsd").innerHTML = data['usedsd'];
+        _("freesd").innerHTML = data['freesd'];
+    })
     _("usedsd").innerHTML = _("freesd").innerHTML = "...";
 }
 
 function listFilesButton() {
-    xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("GET", "/listfiles");
-    _("detailsheader").innerHTML = "<h3>Files<h3>";
-    xmlhttp.onload = function () {
-        _("details").innerHTML = this.status == 200 ? this.responseText : 'Loading failed.';
-    }
-    xmlhttp.send();
+    fetch('/listfiles').then(res => res.text()).then(data => _('details').innerHTML = data)
     _("details").innerHTML = "loading...";
 }
 

@@ -105,7 +105,12 @@ String listFiles()
 
 void handleCardinfo(AsyncWebServerRequest *request)
 {
-    request->send(200, "text/plain", String(SD.totalBytes() / 1.0) + "\n" + String(SD.usedBytes() / 1.0) + "\n" + readableSize(SD.usedBytes()) + "\n" + readableSize(SD.totalBytes() - SD.usedBytes()));
+    JSONVar ret;
+    ret["freesd"] = readableSize(SD.totalBytes() - SD.usedBytes());
+    ret["usedsd"] = readableSize(SD.usedBytes());
+    ret["val"] = String(SD.usedBytes());
+    ret["max"] = String(SD.totalBytes());
+    request->send(200, "text/plain", JSON.stringify(ret));
 }
 
 void handleNotFound(AsyncWebServerRequest *request)
