@@ -1,12 +1,14 @@
 #if !defined(MY_WEB_h)
 #define MY_WEB_h
 
+#include <Arduino_JSON.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <DNSServer.h>
 #include <WiFi.h>
 #include <SD.h>
 #include "my_cfg.h"
+#include "sysWebpage.h"
 #include <AsyncElegantOTA.h>
 
 AsyncWebServer server(80);
@@ -20,6 +22,7 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
 void handleFile(AsyncWebServerRequest *request);
 void handleNotFound(AsyncWebServerRequest *request);
 void handleCardinfo(AsyncWebServerRequest *request);
+void systemInfo(AsyncWebServerRequest *request);
 String listFiles();
 String processor(const String &var);
 String getMime(const String &path);
@@ -43,6 +46,9 @@ void begin_web(const String domain, const char *ap_ssid, const char *ap_psk = nu
                 request->send(200, "text/html", listFiles()); });
     server.on("/file", HTTP_GET, handleFile);
     server.on("/cardinfo", HTTP_GET, handleCardinfo);
+    server.on("/systemInfo", systemInfo);
+    server.on("/system", HTTP_GET, [](AsyncWebServerRequest *request)
+              { request->send_P(200, "text/html", system_webpage); });
     server.onNotFound(handleNotFound);
     server.onFileUpload(handleUpload);
     AsyncElegantOTA.begin(&server, http_id, http_psk);
@@ -144,6 +150,51 @@ void handleFile(AsyncWebServerRequest *request)
     }
     else
         request->send(400, "text/plain", "ERROR: name and action params required");
+}
+
+void systemInfo(AsyncWebServerRequest *request)
+{
+    JSONVar ret;
+    ret["ERROR_MSG"] = "NONE";
+    ret["IP_ADDR"] = WiFi.softAPIP().toString();
+    ret["MAC_ADDR_AP"] = WiFi.softAPmacAddress();
+    ret["MAC_ADDR_STA"] = WiFi.macAddress();
+    auto tempSD = SD.cardType();
+    ret["SD_TYPE"] = (tempSD = CARD_NONE) ? "NONE" : (tempSD = CARD_MMC) ? "MMC"
+                                                 : (tempSD = CARD_SD)    ? "SD"
+                                                 : (tempSD = CARD_SDHC)  ? "SDHC"
+                                                                         : "UNKNOWN";
+    ret["SD_TOTAL_SIZE"] = readableSize(SD.totalBytes());
+    ret["SD_USED_SIZE"] = readableSize(SD.usedBytes());
+    ret["SD_LEFT_SIZE"] = readableSize(SD.totalBytes() - SD.usedBytes());
+    ret["ESP_CHIP_MOD"] = ESP.getChipModel();
+    ret["ESP_CHIP_CORE"] = ESP.getChipCores();
+    ret["ESP_CHIP_REV"] = ESP.getChipRevision();
+    ret["ESP_CPU_FREQ"] = String(ESP.getCpuFreqMHz()) + "MHz";
+    ret["ESP_CYCLE_COUNT"] = String(ESP.getCycleCount());
+    ret["ESP_EFUSE_MAC"] = String(ESP.getEfuseMac());
+    ret["ESP_SDK_VER"] = ESP.getSdkVersion();
+    auto tempFM = ESP.getFlashChipMode();
+    ret["ESP_FLASH_MODE"] = (tempFM = FM_QIO) ? "QIO" : (tempFM = FM_QOUT)    ? "QOUT"
+                                                    : (tempFM = FM_DIO)       ? "DIO"
+                                                    : (tempFM = FM_DOUT)      ? "DOUT"
+                                                    : (tempFM = FM_FAST_READ) ? "FAST_READ"
+                                                    : (tempFM = FM_SLOW_READ) ? "SLOW_READ"
+                                                                              : "UNKNOWN";
+    ret["ESP_FLASH_SIZE"] = String(ESP.getFlashChipSize());
+    ret["ESP_FLASH_SPD"] = String(ESP.getFlashChipSpeed());
+    ret["ESP_HEAP_SIZE"] = String(ESP.getHeapSize());
+    ret["ESP_FREE_HEAP"] = String(ESP.getFreeHeap());
+    ret["ESP_MAX_HEAP"] = String(ESP.getMaxAllocHeap());
+    ret["ESP_MIN_HEAP"] = String(ESP.getMinFreeHeap());
+    ret["ESP_PSRAM_SIZE"] = String(ESP.getPsramSize());
+    ret["ESP_FREE_PSRAM"] = String(ESP.getFreePsram());
+    ret["ESP_MAX_PSRAM"] = String(ESP.getMaxAllocPsram());
+    ret["ESP_MIN_PSRAM"] = String(ESP.getMinFreePsram());
+    ret["ESP_FREE_SKETCH_SPACE"] = String(ESP.getFreeSketchSpace());
+    ret["ESP_SKETCH_SIZE"] = String(ESP.getSketchSize());
+    ret["ESP_SKETCH_MD5"] = ESP.getSketchMD5();
+    request->send(200, "application/json", JSON.stringify(ret));
 }
 
 String getMime(const String &path)
