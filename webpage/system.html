@@ -7,9 +7,8 @@
 </head>
 
 <body style="font-family: monospace;">
-    <h1>System Information</h1>
-    <p>
-    <table>
+    <h1 id="sysInfo">System Information</h1>
+    <table id="sysInfo_ex" hidden>
         <tr><b>
                 <td>Item</td>
                 <td>:</td>
@@ -162,7 +161,8 @@
             <td id="ESP_SKETCH_MD5"></td>
         </tr>
     </table>
-    </p>
+    <h1 id="ops">Operations</h1>
+    <p id="ops_ex" hidden></p>
 </body>
 
 <script>
@@ -175,7 +175,14 @@
             for (const key in data)
                 _(key).innerHTML = data[key];
         })
-    }
+    };
+
+    _('sysInfo').onclick = function () {
+        _('sysInfo_ex').hidden = !_('sysInfo_ex').hidden;
+    };
+    _('ops').onclick = function () {
+        _('ops_ex').hidden = !_('ops_ex').hidden;
+    };
 </script>
 
 </html>
