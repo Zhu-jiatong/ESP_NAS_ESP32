@@ -71,6 +71,7 @@ button:active {
     color: white;
     box-shadow: black;
     padding: 5px;
+    display: none;
 }
 
 #del {
@@ -78,6 +79,7 @@ button:active {
     color: white;
     box-shadow: black;
     padding: 5px;
+    display: none;
 }
 
 #del:hover {
@@ -190,5 +192,10 @@ progress {
 }
 
 #fileLn:hover {
-    box-shadow: 0 3px 10px 0 grey;
+    box-shadow: 0 1px 10px 0 grey;
+}
+
+#fileLn:hover #down,
+#fileLn:hover #del {
+    display: inline;
 }
