@@ -23,8 +23,9 @@ void handleFile(AsyncWebServerRequest *request);
 void handleNotFound(AsyncWebServerRequest *request);
 void handleCardinfo(AsyncWebServerRequest *request);
 void systemInfo(AsyncWebServerRequest *request);
+void handleListFiles(AsyncWebServerRequest *request);
+void promptAuth(AsyncWebServerRequest *request);
 String listFiles();
-String processor(const String &var);
 String getMime(const String &path);
 
 void begin_web(const String domain, const char *ap_ssid, const char *ap_psk = nullptr)
@@ -37,13 +38,9 @@ void begin_web(const String domain, const char *ap_ssid, const char *ap_psk = nu
                  ARDUINO_EVENT_WIFI_AP_STACONNECTED);
 
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-              { if(!request->authenticate(http_id, http_psk))
-                    return request->requestAuthentication();
+              { promptAuth(request);
                 request->send(SD, "/index.html"); });
-    server.on("/listfiles", HTTP_GET, [](AsyncWebServerRequest *request)
-              { if(!request->authenticate(http_id, http_psk))
-                    return request->requestAuthentication();
-                request->send(200, "text/html", listFiles()); });
+    server.on("/listfiles", HTTP_GET, handleListFiles);
     server.on("/file", HTTP_GET, handleFile);
     server.on("/cardinfo", HTTP_GET, handleCardinfo);
     server.on("/systemInfo", systemInfo);
@@ -76,7 +73,24 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
     }
 }
 
-String listFiles()
+void handleListFiles(AsyncWebServerRequest *request)
+{
+    promptAuth(request);
+    JSONVar ret;
+    auto root = SD.open("/");
+    decltype(root.openNextFile()) foundFile;
+    while (foundFile = root.openNextFile())
+    {
+        ret[foundFile.name()]["size"] = readableSize(foundFile.size());
+        ret[foundFile.name()]["isDir"] = foundFile.isDirectory();
+        ret[foundFile.name()]["view"] = foundFile.isDirectory() ? SD.exists(foundFile.path() + String("/comix.html")) ? foundFile.path() + String("/comix.html") : emptyString : foundFile.name();
+    }
+    root.close();
+    foundFile.close();
+    request->send(200, "application/json", JSON.stringify(ret));
+}
+
+/* String listFiles()
 {
     File root = SD.open("/"), foundfile = root.openNextFile();
     String ret{"<table><tr><th align='left'>Name</th><th align='left'>Size</th><th></th><th></th></tr>"};
@@ -102,7 +116,7 @@ String listFiles()
     root.close();
     return ret;
 }
-
+*/
 void handleCardinfo(AsyncWebServerRequest *request)
 {
     JSONVar ret;
@@ -110,13 +124,12 @@ void handleCardinfo(AsyncWebServerRequest *request)
     ret["usedsd"] = readableSize(SD.usedBytes());
     ret["val"] = String(SD.usedBytes());
     ret["max"] = String(SD.totalBytes());
-    request->send(200, "text/plain", JSON.stringify(ret));
+    request->send(200, "application/json", JSON.stringify(ret));
 }
 
 void handleNotFound(AsyncWebServerRequest *request)
 {
-    if (!request->authenticate(http_id, http_psk))
-        return request->requestAuthentication();
+    promptAuth(request);
     String path{request->url()};
     if (SD.exists(path))
         request->send(SD, path, getMime(path), false);
@@ -131,8 +144,6 @@ void handleNotFound(AsyncWebServerRequest *request)
 
 void handleFile(AsyncWebServerRequest *request)
 {
-    if (!request->authenticate(http_id, http_psk))
-        return request->requestAuthentication();
     if (request->hasParam("name") && request->hasParam("action"))
     {
         String fileName = "/" + request->getParam("name")->value();
@@ -225,5 +236,11 @@ String getMime(const String &path)
     else if (path.endsWith(".pdf"))
         return "application/pdf";
     return String();
+}
+
+void promptAuth(AsyncWebServerRequest *request)
+{
+    if (!request->authenticate(http_id, http_psk))
+        return request->requestAuthentication();
 }
 #endif // MY_WEB_h

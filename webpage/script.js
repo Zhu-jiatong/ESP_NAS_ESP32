@@ -14,24 +14,26 @@ window.onload = function () {
 }
 
 function listFilesButton() {
-    fetch('/listfiles').then(res => res.text()).then(data => _('details').innerHTML = data)
     _("details").innerHTML = "loading...";
+    fetch('/listfiles').then(res => res.json()).then(data => {
+        _("details").innerHTML = '<table id="fList"><tr><th>Name</th><th>Size</th></tr></table>';
+        for (const fileKey in data) {
+            let appStr = '<tr id="fileLn" onclick="window.open(\'' + data[fileKey]['view'] + '\')"><td>' + fileKey + '</td><td>' + data[fileKey]['size'] + '</td>';
+            if (!data[fileKey]['isDir'])
+                appStr += "<td>" + '<button id="down"' + 'onclick="downloadDeleteButton(\'' + fileKey + '\', \'download\')">Download</button>' + "</td><td>" + '<button id="del" onclick="downloadDeleteButton(\'' + fileKey + '\', \'delete\')">Delete</button>' + "</td>";
+            appStr += "</tr>";
+            _('fList').insertAdjacentHTML('beforeend', appStr);
+        }
+    })
 }
 
 function downloadDeleteButton(filename, action) {
     var urltocall = "/file?name=" + filename + "&action=" + action;
-    xmlhttp = new XMLHttpRequest();
-    if (action == "delete") {
-        xmlhttp.open("GET", urltocall, false);
-        xmlhttp.send();
-        _("status").innerHTML = xmlhttp.responseText;
-        xmlhttp.open("GET", "/listfiles", false);
-        xmlhttp.send();
-        _("details").innerHTML = xmlhttp.responseText;
-    }
+    if (action == "delete")
+        fetch(urltocall).then(res => res.text()).then(data => _("status").innerHTML = data).then(listFilesButton());
     if (action == "download") {
         _("status").innerHTML = "";
-        window.open(urltocall, "_blank");
+        window.location.replace(urltocall);
     }
 }
 

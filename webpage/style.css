@@ -5,6 +5,12 @@ body {
     font-weight: bold;
 }
 
+table {
+    text-align: left;
+    width: 100%;
+    border-collapse: collapse;
+}
+
 .pad {
     padding: 25px;
 }
@@ -28,8 +34,6 @@ body {
 }
 
 .main-text {
-    width: 60%;
-    float: left;
     font-size: 15pt;
 }
 
@@ -178,9 +182,13 @@ progress {
     }
 }
 
-#prev{
+#prev {
     background-color: orange;
     color: white;
     box-shadow: black;
     padding: 5px;
+}
+
+#fileLn:hover {
+    box-shadow: 0 3px 10px 0 grey;
 }
