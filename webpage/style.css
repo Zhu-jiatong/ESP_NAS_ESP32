@@ -25,14 +25,6 @@ table {
     font-size: 15pt;
 }
 
-.divs {
-    margin: 5px;
-    width: 25%;
-    float: left;
-    border: 4px solid lightblue;
-    background-color: white;
-}
-
 button {
     color: black;
     font-size: inherit;
@@ -41,7 +33,7 @@ button {
     background-color: skyblue;
     border: none;
     border-radius: 8px;
-    padding: 0.5%;
+    padding: 5px;
 }
 
 button:hover {
@@ -58,114 +50,17 @@ button:active {
 #down {
     background-color: forestgreen;
     color: white;
-    padding: 5px;
     display: none;
 }
 
 #del {
     background-color: red;
     color: white;
-    padding: 5px;
     display: none;
-}
-
-#btn {
-    font-size: inherit;
-    font-family: inherit;
-    font-weight: inherit;
-    background-color: skyblue;
-    padding: 1%;
 }
 
 progress {
     height: 45px;
-}
-
-.modal {
-    display: none;
-    /* Hidden by default */
-    position: fixed;
-    /* Stay in place */
-    z-index: 1;
-    /* Sit on top */
-    padding-top: 100px;
-    /* Location of the box */
-    left: 0;
-    top: 0;
-    width: 100%;
-    /* Full width */
-    height: 100%;
-    /* Full height */
-    overflow: auto;
-    /* Enable scroll if needed */
-    background-color: rgb(0, 0, 0);
-    /* Fallback color */
-    background-color: rgba(0, 0, 0, 0.9);
-    /* Black w/ opacity */
-}
-
-.modal-content {
-    margin: auto;
-    display: block;
-    max-width: 100%;
-    max-height: 100%;
-}
-
-#caption {
-    margin: 0;
-    display: block;
-    width: 80%;
-    max-width: 100%;
-    text-align: center;
-    color: #ccc;
-    padding: 5px;
-    height: 150px;
-}
-
-.modal-content,
-#caption {
-    animation-name: zoom;
-    animation-duration: 0.6s;
-}
-
-@keyframes zoom {
-    from {
-        transform: scale(0)
-    }
-
-    to {
-        transform: scale(1)
-    }
-}
-
-.close {
-    position: absolute;
-    top: 15px;
-    right: 35px;
-    color: #f1f1f1;
-    font-size: 40px;
-    font-weight: bold;
-    transition: 0.3s;
-}
-
-.close:hover,
-.close:focus {
-    color: #bbb;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-@media only screen and (max-width: 700px) {
-    .modal-content {
-        width: 100%;
-    }
-}
-
-#prev {
-    background-color: orange;
-    color: white;
-    box-shadow: black;
-    padding: 5px;
 }
 
 #fileLn:hover {
