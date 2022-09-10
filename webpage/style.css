@@ -11,29 +11,17 @@ table {
     border-collapse: collapse;
 }
 
-.pad {
-    padding: 25px;
-}
-
 .header {
     background-color: lightblue;
     color: black;
-    height: 35px;
     font-size: 30pt;
-    text-align: center;
     font-weight: bolder;
-}
-
-.welcome {
-    background-color: gray;
-    color: white;
-    font-size: 15pt;
-    text-align: center;
-    height: 30px;
-    margin: 0px;
+    padding-left: 25px;
 }
 
 .main-text {
+    padding-left: 25px;
+    padding-right: 25px;
     font-size: 15pt;
 }
 
@@ -58,6 +46,7 @@ button {
 
 button:hover {
     box-shadow: 0 12px 10px 0 black;
+    cursor: pointer;
     background-color: yellowgreen;
 }
 
@@ -69,7 +58,6 @@ button:active {
 #down {
     background-color: forestgreen;
     color: white;
-    box-shadow: black;
     padding: 5px;
     display: none;
 }
@@ -77,17 +65,8 @@ button:active {
 #del {
     background-color: red;
     color: white;
-    box-shadow: black;
     padding: 5px;
     display: none;
-}
-
-#del:hover {
-    box-shadow: 0 12px 10px 0 black;
-}
-
-#down:hover {
-    box-shadow: 0 12px 10px 0 black;
 }
 
 #btn {
@@ -95,8 +74,6 @@ button:active {
     font-family: inherit;
     font-weight: inherit;
     background-color: skyblue;
-    border: none;
-    border-radius: 8px;
     padding: 1%;
 }
 
@@ -193,6 +170,7 @@ progress {
 
 #fileLn:hover {
     box-shadow: 0 1px 10px 0 grey;
+    cursor: pointer;
 }
 
 #fileLn:hover #down,
