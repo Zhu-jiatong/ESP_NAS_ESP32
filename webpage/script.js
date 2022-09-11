@@ -15,12 +15,13 @@ window.onload = function () {
 
 function listFilesButton() {
     _("details").innerHTML = "loading...";
+    _('detailsheader').innerHTML = '';
     fetch('/listfiles').then(res => res.json()).then(data => {
         _("details").innerHTML = '<table id="fList"><tr><th></th><th>Name</th><th>Size</th></tr></table>';
         for (const fileKey in data) {
-            let appStr = '<tr id="fileLn" onclick="window.open(\'' + data[fileKey]['view'] + '\')">' +
-                '<td id="fIcon">' + fileIcon(fileKey) + '</td>' +
-                '<td>' + fileKey + '</td><td>' + data[fileKey]['size'] + '</td>';
+            let appStr = '<tr id="fileLn">' +
+                '<td id="fIcon" onclick="window.open(\'' + data[fileKey]['view'] + '\')">' + fileIcon(fileKey) + '</td>' +
+                '<td onclick="window.open(\'' + data[fileKey]['view'] + '\')">' + fileKey + '</td><td>' + data[fileKey]['size'] + '</td>';
             if (!data[fileKey]['isDir'])
                 appStr += "<td>" + '<button id="down"' + 'onclick="downloadDeleteButton(\'' + fileKey + '\', \'download\')">&#xe896;</button>' + "</td><td>" + '<button id="del" onclick="downloadDeleteButton(\'' + fileKey + '\', \'delete\')">&#xe74d;</button>' + "</td>";
             appStr += "</tr>";
