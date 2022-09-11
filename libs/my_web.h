@@ -90,33 +90,6 @@ void handleListFiles(AsyncWebServerRequest *request)
     request->send(200, "application/json", JSON.stringify(ret));
 }
 
-/* String listFiles()
-{
-    File root = SD.open("/"), foundfile = root.openNextFile();
-    String ret{"<table><tr><th align='left'>Name</th><th align='left'>Size</th><th></th><th></th></tr>"};
-    for (; foundfile; foundfile = root.openNextFile())
-    {
-        if (foundfile.isDirectory())
-        {
-            ret += "<tr align='left'><td>" + String(foundfile.name()) + "</td>";
-            if (SD.exists(String(foundfile.path()) + "/comix.html"))
-                ret += "<td></td><td><button id=\"prev\" onclick=\"window.open(\'/" + String(foundfile.name()) + "/comix.html\'" + ")\">Read</button></td></tr>";
-        }
-        else
-        {
-            ret += "<tr align='left'><td>" + String(foundfile.name()) + "</td>";
-            ret += "<td>" + readableSize(foundfile.size()) + "</td>";
-            ret += "<td><button id=\"prev\" onclick=\"showPreview(\'" + String(foundfile.name()) + "\')\">Preview</button></td>";
-            ret += "<td><button id=\"down\" onclick=\"downloadDeleteButton(\'" + String(foundfile.name()) + "\', \'download\')\">Download</button></td>";
-            ret += "<td><button id=\"del\" onclick=\"downloadDeleteButton(\'" + String(foundfile.name()) + "\', \'delete\')\">Delete</button></td></tr>";
-        }
-    }
-    ret += "</table>";
-    foundfile.close();
-    root.close();
-    return ret;
-}
-*/
 void handleCardinfo(AsyncWebServerRequest *request)
 {
     JSONVar ret;
@@ -215,27 +188,7 @@ void systemInfo(AsyncWebServerRequest *request)
 
 String getMime(const String &path)
 {
-    if (path.endsWith(".html") || path.endsWith(".htm"))
-        return "text/html";
-    else if (path.endsWith(".css"))
-        return "text/css";
-    else if (path.endsWith(".js"))
-        return "text/javascript";
-    else if (path.endsWith(".png"))
-        return "image/png";
-    else if (path.endsWith(".gif"))
-        return "image/gif";
-    else if (path.endsWith(".jpg") || path.endsWith(".jpeg"))
-        return "image/jpeg";
-    else if (path.endsWith(".ico"))
-        return "image/x-icon";
-    else if (path.endsWith(".xml"))
-        return "text/xml";
-    else if (path.endsWith(".mp4"))
-        return "video/mp4";
-    else if (path.endsWith(".pdf"))
-        return "application/pdf";
-    return String();
+    return (const char *)JSON.parse(SD.open("/fileType.json").readString())[path.substring(path.lastIndexOf("."))];
 }
 
 void promptAuth(AsyncWebServerRequest *request)
