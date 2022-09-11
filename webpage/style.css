@@ -1,3 +1,8 @@
+@font-face {
+    font-family: ms-ico;
+    src: url('Segoe Fluent Icons.ttf');
+}
+
 body {
     margin: 0px;
     background-color: beige;
@@ -34,6 +39,7 @@ button {
     border: none;
     border-radius: 8px;
     padding: 5px;
+    font-family: 'ms-ico';
 }
 
 button:hover {
@@ -51,12 +57,14 @@ button:active {
     background-color: forestgreen;
     color: white;
     display: none;
+    font-family: 'ms-ico';
 }
 
 #del {
     background-color: red;
     color: white;
     display: none;
+    font-family: 'ms-ico';
 }
 
 progress {
@@ -71,4 +79,9 @@ progress {
 #fileLn:hover #down,
 #fileLn:hover #del {
     display: inline;
+}
+
+#fIcon {
+    font-family: 'ms-ico';
+    padding-right: 10px;
 }

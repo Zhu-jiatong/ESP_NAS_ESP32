@@ -16,11 +16,13 @@ window.onload = function () {
 function listFilesButton() {
     _("details").innerHTML = "loading...";
     fetch('/listfiles').then(res => res.json()).then(data => {
-        _("details").innerHTML = '<table id="fList"><tr><th>Name</th><th>Size</th></tr></table>';
+        _("details").innerHTML = '<table id="fList"><tr><th></th><th>Name</th><th>Size</th></tr></table>';
         for (const fileKey in data) {
-            let appStr = '<tr id="fileLn" onclick="window.open(\'' + data[fileKey]['view'] + '\')"><td>' + fileKey + '</td><td>' + data[fileKey]['size'] + '</td>';
+            let appStr = '<tr id="fileLn" onclick="window.open(\'' + data[fileKey]['view'] + '\')">' +
+                '<td id="fIcon">' + fileIcon(fileKey) + '</td>' +
+                '<td>' + fileKey + '</td><td>' + data[fileKey]['size'] + '</td>';
             if (!data[fileKey]['isDir'])
-                appStr += "<td>" + '<button id="down"' + 'onclick="downloadDeleteButton(\'' + fileKey + '\', \'download\')">Download</button>' + "</td><td>" + '<button id="del" onclick="downloadDeleteButton(\'' + fileKey + '\', \'delete\')">Delete</button>' + "</td>";
+                appStr += "<td>" + '<button id="down"' + 'onclick="downloadDeleteButton(\'' + fileKey + '\', \'download\')">&#xe896;</button>' + "</td><td>" + '<button id="del" onclick="downloadDeleteButton(\'' + fileKey + '\', \'delete\')">&#xe74d;</button>' + "</td>";
             appStr += "</tr>";
             _('fList').insertAdjacentHTML('beforeend', appStr);
         }
@@ -87,4 +89,32 @@ function errorHandler(event) {
 }
 function abortHandler(event) {
     _("status").innerHTML = "inUpload Aborted";
+}
+function fileIcon(filename) {
+    switch (filename.split('.').pop()) {
+        case 'jpg':
+        case 'jpeg':
+        case 'png':
+        case 'gif':
+        case 'ico':
+            return '&#xe8b9;';
+        case 'mp4':
+        case 'mov':
+            return '&#xe714;';
+        case 'mp3':
+            return '&#xe8d6;';
+        case 'js':
+        case 'css':
+        case 'html':
+            return '&#xe943;';
+        case 'pdf':
+        case 'docx':
+        case 'doc':
+            return '&#xe8a5;';
+        case 'ttf':
+            return '&#xe8d2;'
+
+        default:
+            return '&#xe8b7;'
+    }
 }
