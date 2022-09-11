@@ -88,21 +88,3 @@ function errorHandler(event) {
 function abortHandler(event) {
     _("status").innerHTML = "inUpload Aborted";
 }
-
-function STACfg() {
-    var urltocall = "/postSTA?sta_ssid=" + document.sta.sta_ssid.value + "&sta_psk=" + document.sta.sta_psk.value;
-    xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("GET", urltocall, false);
-    xmlhttp.send();
-    _("STAstatus").innerHTML = xmlhttp.responseText;
-    xmlhttp.open("GET", "/listfiles", false);
-    xmlhttp.send();
-    _("details").innerHTML = xmlhttp.responseText;
-}
-
-function showPreview(fileName) {
-    /* _("img01").src = fileName;
-    _("caption").innerHTML = fileName;
-    _("myModal").style.display = "block"; */
-    window.open(fileName);
-}
