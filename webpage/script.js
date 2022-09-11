@@ -106,6 +106,7 @@ function fileIcon(filename) {
         case 'js':
         case 'css':
         case 'html':
+        case 'bin':
             return '&#xe943;';
         case 'pdf':
         case 'docx':
