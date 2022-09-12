@@ -12,8 +12,13 @@ body {
 
 table {
     text-align: left;
-    width: 100%;
+    width: max-content;
+    max-width: 100%;
     border-collapse: collapse;
+}
+
+td {
+    padding-right: 10px;
 }
 
 .header {
@@ -30,6 +35,7 @@ table {
     font-size: 15pt;
 }
 
+.btn-cover,
 button {
     color: black;
     font-size: inherit;
@@ -42,12 +48,14 @@ button {
     font-family: 'ms-ico';
 }
 
+.btn-cover:hover,
 button:hover {
     box-shadow: 0 12px 10px 0 black;
     cursor: pointer;
     background-color: yellowgreen;
 }
 
+.btn-cover:active,
 button:active {
     transform: translateY(3px);
     box-shadow: 0 9px 7px 0 black;
@@ -81,7 +89,6 @@ progress {
     display: inline;
 }
 
-#fIcon {
+.fIcon {
     font-family: 'ms-ico';
-    padding-right: 10px;
 }

@@ -1,9 +1,15 @@
 function _(el) {
     return document.getElementById(el);
 }
+function __(cl) {
+    return document.getElementsByClassName(cl);
+}
+
+var uploadForm;
 
 window.onload = function () {
     listFilesButton();
+    fetch('uploadForm.html').then(res => res.text()).then(data => uploadForm = data);
     fetch('/cardinfo').then(res => res.json()).then(data => {
         _("cardinfo").max = data['max'];
         _("cardinfo").value = data['val'];
@@ -20,7 +26,7 @@ function listFilesButton() {
         _("details").innerHTML = '<table id="fList"><tr><th></th><th>Name</th><th>Size</th></tr></table>';
         for (const fileKey in data) {
             let appStr = '<tr id="fileLn">' +
-                '<td id="fIcon" onclick="window.open(\'' + data[fileKey]['view'] + '\')">' + fileIcon(fileKey) + '</td>' +
+                '<td class="fIcon" onclick="window.open(\'' + data[fileKey]['view'] + '\')">' + fileIcon(fileKey) + '</td>' +
                 '<td onclick="window.open(\'' + data[fileKey]['view'] + '\')">' + fileKey + '</td><td>' + data[fileKey]['size'] + '</td>';
             if (!data[fileKey]['isDir'])
                 appStr += "<td>" + '<button id="down"' + 'onclick="downloadDeleteButton(\'' + fileKey + '\', \'download\')">&#xe896;</button>' + "</td><td>" + '<button id="del" onclick="downloadDeleteButton(\'' + fileKey + '\', \'delete\')">&#xe74d;</button>' + "</td>";
@@ -40,28 +46,42 @@ function downloadDeleteButton(filename, action) {
     }
 }
 
-function showUploadButtonFancy() {
-    _("detailsheader").innerHTML = "<h3>Upload File<h3>"
+function showUploadForm() {
+    _("detailsheader").innerHTML = "<h3>Upload File<h3>";
     _("status").innerHTML = "";
-    var uploadform = "<form method = \"POST\" action = \"/\" enctype=\"multipart/form-data\"><input type=\"file\" name=\"data\"/><input type=\"submit\" name=\"upload\" value=\"Upload\" title = \"Upload File\"></form>"
-    _("details").innerHTML = uploadform;
-    var uploadform =
-        "<form id=\"upload_form\" enctype=\"multipart/form-data\" method=\"post\">" +
-        "<input type=\"file\" name=\"file1\" id=\"file1\" multiple onchange=\"uploadFile()\"><br>" +
-        "<progress id=\"progressBar\" value=\"0\" max=\"100\" style=\"width:100%;\"></progress>" +
-        "<h3 id=\"status\"></h3>" +
-        "<p id=\"loaded_n_total\"></p>" +
-        "</form>";
-    _("details").innerHTML = uploadform;
+    _("details").innerHTML = uploadForm;
+    _('uploadConfirm').addEventListener('click', (e) => {
+        e.preventDefault();
+        uploadFile();
+    });
+    _('file').addEventListener('change', uploadFormEvent);
+    _('file').addEventListener('reset', uploadFormEvent);
 }
+
+function uploadFormEvent(e) {
+    let total_size = 0;
+    const upFileInfo = document.createDocumentFragment();
+    const table_file_head = upFileInfo.appendChild(document.createElement('tr'));
+    table_file_head.appendChild(document.createElement('th')).textContent = 'Name';
+    table_file_head.appendChild(document.createElement('th')).textContent = 'Size (bytes)';
+    Array.from(e.target.files).forEach(file => {
+        const table_file_row = upFileInfo.appendChild(document.createElement('tr'));
+        table_file_row.appendChild(document.createElement('td')).textContent = file.name;
+        table_file_row.appendChild(document.createElement('td')).textContent = file.size;
+        total_size += file.size;
+    });
+    const table_file_total = upFileInfo.appendChild(document.createElement('tr'));
+    table_file_total.appendChild(document.createElement('td')).textContent = e.target.files.length;
+    table_file_total.appendChild(document.createElement('td')).textContent = total_size;
+    _('pendingFiles').replaceChildren(upFileInfo);
+}
+
 function uploadFile() {
     var formdata = new FormData();
-    Array.from(_("file1").files).forEach(file => {
-        formdata.append("files", file);
-    });
+    Array.from(_("file").files).forEach(file => formdata.append("files", file));
     var ajax = new XMLHttpRequest();
     ajax.upload.addEventListener("progress", progressHandler, false);
-    ajax.addEventListener("load", completeHandler, false); // doesnt appear to ever get called even upon success
+    ajax.addEventListener("load", completeHandler, false);
     ajax.addEventListener("error", errorHandler, false);
     ajax.addEventListener("abort", abortHandler, false);
     ajax.open("POST", "/");
@@ -70,6 +90,7 @@ function uploadFile() {
 function progressHandler(event) {
     _("loaded_n_total").innerHTML = "Uploaded " + event.loaded + " bytes";
     var percent = (event.loaded / event.total) * 100;
+    _('progressBar').hidden = false;
     _("progressBar").value = Math.round(percent);
     _("status").innerHTML = Math.round(percent) + "% uploaded... please wait";
     if (percent >= 100) {
@@ -114,9 +135,11 @@ function fileIcon(filename) {
         case 'doc':
             return '&#xe8a5;';
         case 'ttf':
-            return '&#xe8d2;'
+            return '&#xe8d2;';
+        case 'json':
+            return '&#xe713;';
 
         default:
-            return '&#xe8b7;'
+            return '&#xe8b7;';
     }
 }
