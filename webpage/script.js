@@ -23,19 +23,63 @@ function listFilesButton() {
     _("details").innerHTML = "loading...";
     _('detailsheader').innerHTML = '';
     fetch('/listfiles').then(res => res.json()).then(data => {
-        _("details").innerHTML = '<table id="fList"><tr><th></th><th>Name</th><th>Size</th></tr></table>';
+        const fileListTable = document.createDocumentFragment().appendChild(document.createElement('table'));
+        const fileListHead = fileListTable.appendChild(document.createElement('thead')).appendChild(document.createElement('tr'));
+        const fileListHeadName = fileListHead.appendChild(document.createElement('th'));
+        fileListHeadName.textContent = 'Name';
+        fileListHeadName.scope = 'col';
+        const fileListHeadSize = fileListHead.appendChild(document.createElement('th'));
+        fileListHeadSize.textContent = 'Size';
+        fileListHeadSize.scope = 'col';
+        const fileListBody = fileListTable.appendChild(document.createElement('tbody'));
         for (const fileKey in data) {
+            const fileListBodyRow = fileListBody.appendChild(document.createElement('tr'));
+            fileListBodyRow.className = 'fileLn';
+            fileListBodyRow.id = fileKey;
+            const fileListBodyRowIcon = fileListBodyRow.appendChild(document.createElement('td'));
+            fileListBodyRowIcon.innerHTML = fileIcon(fileKey);
+            fileListBodyRowIcon.classList.add('fIcon');
+            fileListBodyRowIcon.classList.add('msIcon');
+            fileListBodyRowIcon.id = fileKey;
+            fileListBodyRow.appendChild(document.createElement('td')).textContent = fileKey;
+            fileListBodyRow.appendChild(document.createElement('td')).textContent = data[fileKey]['size'];
+            if (!data[fileKey]['isDir']) {
+                const fileListBodyRowOps = fileListBodyRow.appendChild(document.createElement('td'));
+                const fileListBodyRowOpsDown = fileListBodyRowOps.appendChild(document.createElement('button'));
+                fileListBodyRowOpsDown.innerHTML = '&#xe896;';
+                fileListBodyRowOpsDown.className = 'down';
+                const fileListBodyRowOpsDel = fileListBodyRowOps.appendChild(document.createElement('button'));
+                fileListBodyRowOpsDel.innerHTML = '&#xe74d;';
+                fileListBodyRowOpsDel.className = 'del';
+            }
+            /*             
             let appStr = '<tr id="fileLn">' +
-                '<td class="fIcon" onclick="window.open(\'' + data[fileKey]['view'] + '\')">' + fileIcon(fileKey) + '</td>' +
-                '<td onclick="window.open(\'' + data[fileKey]['view'] + '\')">' + fileKey + '</td><td>' + data[fileKey]['size'] + '</td>';
-            if (!data[fileKey]['isDir'])
-                appStr += "<td>" + '<button id="down"' + 'onclick="downloadDeleteButton(\'' + fileKey + '\', \'download\')">&#xe896;</button>' + "</td><td>" + '<button id="del" onclick="downloadDeleteButton(\'' + fileKey + '\', \'delete\')">&#xe74d;</button>' + "</td>";
-            appStr += "</tr>";
-            _('fList').insertAdjacentHTML('beforeend', appStr);
+                            '<td class="fIcon" onclick="window.open(\'' + data[fileKey]['view'] + '\')">' + fileIcon(fileKey) + '</td>' +
+                            '<td onclick="window.open(\'' + data[fileKey]['view'] + '\')">' + fileKey + '</td><td>' + data[fileKey]['size'] + '</td>';
+                        if (!data[fileKey]['isDir'])
+                            appStr += "<td>" + '<button id="down"' + 'onclick="downloadDeleteButton(\'' + fileKey + '\', \'download\')">&#xe896;</button>' + "</td><td>" + '<button id="del" onclick="downloadDeleteButton(\'' + fileKey + '\', \'delete\')">&#xe74d;</button>' + "</td>";
+                        appStr += "</tr>";
+                        _('fList').insertAdjacentHTML('beforeend', appStr);
+             */
         }
+        _('details').replaceChildren(fileListTable);
+        Array.from(__('fIcon')).forEach(fileOpen => fileOpen.addEventListener('click', function () { window.open(fileOpen.id); }));
+        Array.from(__('down')).forEach(fileDown => fileDown.addEventListener('click', function () {
+            const url = new URL('/file', window.location.origin);
+            url.searchParams.append('name', fileDown.parentElement.parentElement.id);
+            url.searchParams.append('action', 'download');
+            _("status").innerHTML = "";
+            window.location.replace(url);
+        }));
+        Array.from(__('del')).forEach(fileDel => fileDel.addEventListener('click', function () {
+            const url = new URL('/file', window.location.origin);
+            url.searchParams.append('name', fileDel.parentElement.parentElement.id);
+            url.searchParams.append('action', 'delete');
+            fetch(url).then(res => res.text()).then(data => _("status").innerHTML = data).then(listFilesButton());
+        }));
     })
 }
-
+/* 
 function downloadDeleteButton(filename, action) {
     var urltocall = "/file?name=" + filename + "&action=" + action;
     if (action == "delete")
@@ -45,9 +89,11 @@ function downloadDeleteButton(filename, action) {
         window.location.replace(urltocall);
     }
 }
-
+ */
 function showUploadForm() {
-    _("detailsheader").innerHTML = "<h3>Upload File<h3>";
+    const uploadTitle = document.createElement('h3');
+    uploadTitle.textContent = 'Upload Files';
+    _("detailsheader").replaceChildren(uploadTitle);
     _("status").innerHTML = "";
     _("details").innerHTML = uploadForm;
     _('uploadConfirm').addEventListener('click', (e) => {

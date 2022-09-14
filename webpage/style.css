@@ -61,14 +61,14 @@ button:active {
     box-shadow: 0 9px 7px 0 black;
 }
 
-#down {
+.down {
     background-color: forestgreen;
     color: white;
     display: none;
     font-family: 'ms-ico';
 }
 
-#del {
+.del {
     background-color: red;
     color: white;
     display: none;
@@ -79,16 +79,16 @@ progress {
     height: 45px;
 }
 
-#fileLn:hover {
+.fileLn:hover {
     box-shadow: 0 1px 10px 0 grey;
     cursor: pointer;
 }
 
-#fileLn:hover #down,
-#fileLn:hover #del {
+.fileLn:hover .down,
+.fileLn:hover .del {
     display: inline;
 }
 
-.fIcon {
+.msIcon {
     font-family: 'ms-ico';
 }
