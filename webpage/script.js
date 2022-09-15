@@ -7,24 +7,25 @@ function __(cl) {
 
 var uploadForm;
 
-window.onload = function () {
-    listFilesButton();
+window.addEventListener('load', function () {
+    listFiles();
     fetch('uploadForm.html').then(res => res.text()).then(data => uploadForm = data);
     fetch('/cardinfo').then(res => res.json()).then(data => {
         _("cardinfo").max = data['max'];
         _("cardinfo").value = data['val'];
-        _("usedsd").innerHTML = data['usedsd'];
-        _("freesd").innerHTML = data['freesd'];
+        _("usedsd").textContent = data['usedsd'];
+        _("freesd").textContent = data['freesd'];
     })
-    _("usedsd").innerHTML = _("freesd").innerHTML = "...";
-}
+    _("usedsd").textContent = _("freesd").textContent = "...";
+});
 
-function listFilesButton() {
-    _("details").innerHTML = "loading...";
-    _('detailsheader').innerHTML = '';
+function listFiles() {
+    _('details').textContent = 'loading...';
+    _('detailsheader').textContent = '';
     fetch('/listfiles').then(res => res.json()).then(data => {
-        const fileListTable = document.createDocumentFragment().appendChild(document.createElement('table'));
+        const fileListTable = document.createElement('table');
         const fileListHead = fileListTable.appendChild(document.createElement('thead')).appendChild(document.createElement('tr'));
+        fileListHead.append(document.createElement('th'));
         const fileListHeadName = fileListHead.appendChild(document.createElement('th'));
         fileListHeadName.textContent = 'Name';
         fileListHeadName.scope = 'col';
@@ -35,13 +36,18 @@ function listFilesButton() {
         for (const fileKey in data) {
             const fileListBodyRow = fileListBody.appendChild(document.createElement('tr'));
             fileListBodyRow.className = 'fileLn';
-            fileListBodyRow.id = fileKey;
+            fileListBodyRow.setAttribute('fileName', fileKey);
+            fileListBodyRow.setAttribute('filePath', data[fileKey]['path']);
             const fileListBodyRowIcon = fileListBodyRow.appendChild(document.createElement('td'));
             fileListBodyRowIcon.innerHTML = fileIcon(fileKey);
             fileListBodyRowIcon.classList.add('fIcon');
             fileListBodyRowIcon.classList.add('msIcon');
+            fileListBodyRowIcon.classList.add('clickable')
             fileListBodyRowIcon.id = fileKey;
-            fileListBodyRow.appendChild(document.createElement('td')).textContent = fileKey;
+            const fileListBodyRowName = fileListBodyRow.appendChild(document.createElement('td')).appendChild(document.createElement('span'));
+            fileListBodyRowName.textContent = fileKey;
+            fileListBodyRowName.classList.add('clickable');
+            fileListBodyRowName.classList.add('renameFile');
             fileListBodyRow.appendChild(document.createElement('td')).textContent = data[fileKey]['size'];
             if (!data[fileKey]['isDir']) {
                 const fileListBodyRowOps = fileListBodyRow.appendChild(document.createElement('td'));
@@ -52,49 +58,70 @@ function listFilesButton() {
                 fileListBodyRowOpsDel.innerHTML = '&#xe74d;';
                 fileListBodyRowOpsDel.className = 'del';
             }
-            /*             
-            let appStr = '<tr id="fileLn">' +
-                            '<td class="fIcon" onclick="window.open(\'' + data[fileKey]['view'] + '\')">' + fileIcon(fileKey) + '</td>' +
-                            '<td onclick="window.open(\'' + data[fileKey]['view'] + '\')">' + fileKey + '</td><td>' + data[fileKey]['size'] + '</td>';
-                        if (!data[fileKey]['isDir'])
-                            appStr += "<td>" + '<button id="down"' + 'onclick="downloadDeleteButton(\'' + fileKey + '\', \'download\')">&#xe896;</button>' + "</td><td>" + '<button id="del" onclick="downloadDeleteButton(\'' + fileKey + '\', \'delete\')">&#xe74d;</button>' + "</td>";
-                        appStr += "</tr>";
-                        _('fList').insertAdjacentHTML('beforeend', appStr);
-             */
         }
         _('details').replaceChildren(fileListTable);
-        Array.from(__('fIcon')).forEach(fileOpen => fileOpen.addEventListener('click', function () { window.open(fileOpen.id); }));
-        Array.from(__('down')).forEach(fileDown => fileDown.addEventListener('click', function () {
-            const url = new URL('/file', window.location.origin);
-            url.searchParams.append('name', fileDown.parentElement.parentElement.id);
-            url.searchParams.append('action', 'download');
-            _("status").innerHTML = "";
-            window.location.replace(url);
+        Array.from(__('fIcon')).forEach(fileOpen => fileOpen.addEventListener('click', (e) => { window.open(e.target.parentElement.getAttribute('filePath')); }));
+        Array.from(__('down')).forEach(fileDown => fileDown.addEventListener('click', (e) => {
+            fileAction(e.target.parentElement.parentElement.getAttribute('filePath'), 'download', e.target.parentElement.parentElement.getAttribute('fileName'), null);
         }));
-        Array.from(__('del')).forEach(fileDel => fileDel.addEventListener('click', function () {
-            const url = new URL('/file', window.location.origin);
-            url.searchParams.append('name', fileDel.parentElement.parentElement.id);
-            url.searchParams.append('action', 'delete');
-            fetch(url).then(res => res.text()).then(data => _("status").innerHTML = data).then(listFilesButton());
+        Array.from(__('del')).forEach(fileDel => fileDel.addEventListener('click', (e) => {
+            fileAction(e.target.parentElement.parentElement.getAttribute('filePath'), 'delete', null, null);
         }));
+        Array.from(__('renameFile')).forEach(fileRen => fileRen.addEventListener('click', showRenameForm));
     })
 }
-/* 
-function downloadDeleteButton(filename, action) {
-    var urltocall = "/file?name=" + filename + "&action=" + action;
-    if (action == "delete")
-        fetch(urltocall).then(res => res.text()).then(data => _("status").innerHTML = data).then(listFilesButton());
-    if (action == "download") {
-        _("status").innerHTML = "";
-        window.location.replace(urltocall);
+
+function showRenameForm(event) {
+    event.target.removeEventListener('click', showRenameForm);
+    const renameForm = document.createElement('form');
+    const renameFormText = renameForm.appendChild(document.createElement('input'));
+    renameFormText.value = event.target.parentElement.parentElement.getAttribute('fileName');
+    renameFormText.autofocus = true;
+    renameFormText.id = 'newName';
+    renameFormText.addEventListener('focusout', (e) => {
+        e.target.parentElement.parentElement.addEventListener('click', showRenameForm);
+        e.target.parentElement.parentElement.textContent = e.target.parentElement.parentElement.parentElement.parentElement.getAttribute('fileName');
+    });
+    const renameFormBtn = renameForm.appendChild(document.createElement('button'));
+    renameFormBtn.innerHTML = '&#xe73e;';
+    renameFormBtn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        console.log(e.target.parentElement.parentElement.parentElement.parentElement.getAttribute('filePath'));
+        console.log(e.target.parentElement.parentElement.parentElement.parentElement.getAttribute('filePath').replace(e.target.parentElement.parentElement.parentElement.parentElement.getAttribute('fileName'), _('newName').value));
+        fileAction(e.target.parentElement.parentElement.parentElement.parentElement.getAttribute('filePath'), 'rename', null, e.target.parentElement.parentElement.parentElement.parentElement.getAttribute('filePath').replace(e.target.parentElement.parentElement.parentElement.parentElement.getAttribute('fileName'), _('newName').value));
+    });
+    event.target.replaceChildren(renameForm);
+}
+
+function fileAction(path, action, name, newPath) {
+    const data = new Object();
+    data.path = path;
+    data.action = action;
+    data.newPath = newPath;
+    let req = fetch('/file', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', },
+        body: JSON.stringify(data),
+    });
+    if (action == 'download')
+        req.then(res => res.blob()).then(data => {
+            const tempDown = document.createElement('a');
+            tempDown.href = URL.createObjectURL(data);
+            tempDown.download = name;
+            tempDown.click();
+        });
+    else {
+        req.then(res => res.json()).then(data => {
+            _('status').textContent = (data['success'] ? 'Success: ' : 'Failed: ') + data['action'] + ' ' + data['target'];
+        }).then(listFiles);
     }
 }
- */
+
 function showUploadForm() {
     const uploadTitle = document.createElement('h3');
     uploadTitle.textContent = 'Upload Files';
     _("detailsheader").replaceChildren(uploadTitle);
-    _("status").innerHTML = "";
+    _("status").textContent = "";
     _("details").innerHTML = uploadForm;
     _('uploadConfirm').addEventListener('click', (e) => {
         e.preventDefault();
@@ -125,39 +152,36 @@ function uploadFormEvent(e) {
 function uploadFile() {
     var formdata = new FormData();
     Array.from(_("file").files).forEach(file => formdata.append("files", file));
-    var ajax = new XMLHttpRequest();
-    ajax.upload.addEventListener("progress", progressHandler, false);
-    ajax.addEventListener("load", completeHandler, false);
-    ajax.addEventListener("error", errorHandler, false);
-    ajax.addEventListener("abort", abortHandler, false);
-    ajax.open("POST", "/");
-    ajax.send(formdata);
+    var xhr = new XMLHttpRequest();
+    xhr.upload.addEventListener("progress", progressHandler, false);
+    xhr.addEventListener("load", completeHandler, false);
+    xhr.addEventListener("error", errorHandler, false);
+    xhr.addEventListener("abort", abortHandler, false);
+    xhr.open("POST", "/");
+    xhr.send(formdata);
 }
-function progressHandler(event) {
-    _("loaded_n_total").innerHTML = "Uploaded " + event.loaded + " bytes";
-    var percent = (event.loaded / event.total) * 100;
+function progressHandler(e) {
+    _('loaded_n_total').textContent = 'Uploaded ' + e.loaded + '/' + e.total + ' bytes';
     _('progressBar').hidden = false;
-    _("progressBar").value = Math.round(percent);
-    _("status").innerHTML = Math.round(percent) + "% uploaded... please wait";
-    if (percent >= 100) {
-        _("status").innerHTML = "Please wait, writing file to filesystem";
-    }
+    _('progressBar').max = e.total;
+    _('progressBar').value = e.loaded;
+    _('status').textContent = Math.round((e.loaded / e.total) * 100) + '% uploaded... please wait';
+    if (e.loaded >= e.total)
+        _('status').textContent = 'Please wait, writing file to filesystem';
 }
 function completeHandler(event) {
-    _("status").innerHTML = "Upload Complete";
+    _("status").textContent = "Upload Complete";
     _("progressBar").value = 0;
-    xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("GET", "/listfiles", false);
-    xmlhttp.send();
-    _("status").innerHTML = "File Uploaded";
-    listFilesButton();
+    _("status").textContent = "File Uploaded";
+    listFiles();
 }
 function errorHandler(event) {
-    _("status").innerHTML = "Upload Failed";
+    _("status").textContent = "Upload Failed";
 }
 function abortHandler(event) {
-    _("status").innerHTML = "inUpload Aborted";
+    _("status").textContent = "inUpload Aborted";
 }
+
 function fileIcon(filename) {
     switch (filename.split('.').pop()) {
         case 'jpg':

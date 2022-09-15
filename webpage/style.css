@@ -81,6 +81,10 @@ progress {
 
 .fileLn:hover {
     box-shadow: 0 1px 10px 0 grey;
+}
+
+button:hover,
+.clickable:hover {
     cursor: pointer;
 }
 
