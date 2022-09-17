@@ -27,6 +27,7 @@ void handleListFiles(AsyncWebServerRequest *request);
 void promptAuth(AsyncWebServerRequest *request);
 String listFiles();
 String getMime(const String &path);
+String listFiles(String path);
 
 void begin_web(const String domain, const char *ap_ssid, const char *ap_psk = nullptr)
 {
@@ -77,8 +78,13 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
 void handleListFiles(AsyncWebServerRequest *request)
 {
     promptAuth(request);
+    request->send(200, "application/json", listFiles(request->getParam("path")->value()));
+}
+
+String listFiles(String path)
+{
     JSONVar ret;
-    auto root = SD.open("/");
+    auto root = SD.open(path);
     decltype(root.openNextFile()) foundFile;
     while (foundFile = root.openNextFile())
     {
@@ -86,9 +92,9 @@ void handleListFiles(AsyncWebServerRequest *request)
         ret[foundFile.name()]["isDir"] = foundFile.isDirectory();
         ret[foundFile.name()]["path"] = foundFile.path();
     }
-    root.close();
     foundFile.close();
-    request->send(200, "application/json", JSON.stringify(ret));
+    root.close();
+    return JSON.stringify(ret);
 }
 
 void handleCardinfo(AsyncWebServerRequest *request)

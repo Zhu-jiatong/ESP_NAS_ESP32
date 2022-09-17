@@ -15,10 +15,12 @@ table {
     width: max-content;
     max-width: 100%;
     border-collapse: collapse;
+    font-weight: normal;
 }
 
 td {
     padding-right: 10px;
+    font-weight: inherit;
 }
 
 .header {
@@ -40,7 +42,7 @@ button {
     color: black;
     font-size: inherit;
     font-family: inherit;
-    font-weight: inherit;
+    font-weight: bolder;
     background-color: skyblue;
     border: none;
     border-radius: 8px;
@@ -81,6 +83,7 @@ progress {
 
 .fileLn:hover {
     box-shadow: 0 1px 10px 0 grey;
+    font-weight: bold;
 }
 
 button:hover,
@@ -95,4 +98,24 @@ button:hover,
 
 .msIcon {
     font-family: 'ms-ico';
+}
+
+.fileOpsCell {
+    padding: 0;
+}
+
+input {
+    font-size: inherit;
+}
+
+.renameFile:hover {
+    cursor: text;
+}
+
+.fIcon {
+    font-weight: bolder;
+}
+
+th {
+    font-weight: bold;
 }

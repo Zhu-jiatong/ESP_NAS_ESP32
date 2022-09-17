@@ -6,9 +6,11 @@ function __(cl) {
 }
 
 var uploadForm;
+var currentDir = "/";
 
 window.addEventListener('load', function () {
-    listFiles();
+    _('listFiles').addEventListener('click', () => listFiles("/"));
+    listFiles("/");
     fetch('uploadForm.html').then(res => res.text()).then(data => uploadForm = data);
     fetch('/cardinfo').then(res => res.json()).then(data => {
         _("cardinfo").max = data['max'];
@@ -19,10 +21,12 @@ window.addEventListener('load', function () {
     _("usedsd").textContent = _("freesd").textContent = "...";
 });
 
-function listFiles() {
+function listFiles(dirPath) {
     _('details').textContent = 'loading...';
     _('detailsheader').textContent = '';
-    fetch('/listfiles').then(res => res.json()).then(data => {
+    const url = new URL('/listfiles', window.location.origin);
+    url.searchParams.append('path', dirPath);
+    fetch(url).then(res => res.json()).then(data => {
         const fileListTable = document.createElement('table');
         const fileListHead = fileListTable.appendChild(document.createElement('thead')).appendChild(document.createElement('tr'));
         fileListHead.append(document.createElement('th'));
@@ -35,51 +39,57 @@ function listFiles() {
         const fileListBody = fileListTable.appendChild(document.createElement('tbody'));
         for (const fileKey in data) {
             const fileListBodyRow = fileListBody.appendChild(document.createElement('tr'));
-            fileListBodyRow.className = 'fileLn';
+            fileListBodyRow.classList.add('fileLn');
+            fileListBodyRow.classList.add('clickable');
             fileListBodyRow.setAttribute('fileName', fileKey);
             fileListBodyRow.setAttribute('filePath', data[fileKey]['path']);
-            const fileListBodyRowIcon = fileListBodyRow.appendChild(document.createElement('td'));
+            const fileListBodyRowIcon = fileListBodyRow.appendChild(document.createElement('th'));
             fileListBodyRowIcon.innerHTML = fileIcon(fileKey);
             fileListBodyRowIcon.classList.add('fIcon');
             fileListBodyRowIcon.classList.add('msIcon');
-            fileListBodyRowIcon.classList.add('clickable')
+            fileListBodyRowIcon.scope = 'ln';
             fileListBodyRowIcon.id = fileKey;
             const fileListBodyRowName = fileListBodyRow.appendChild(document.createElement('td')).appendChild(document.createElement('span'));
             fileListBodyRowName.textContent = fileKey;
-            fileListBodyRowName.classList.add('clickable');
-            fileListBodyRowName.classList.add('renameFile');
             fileListBodyRow.appendChild(document.createElement('td')).textContent = data[fileKey]['size'];
             if (!data[fileKey]['isDir']) {
+                fileListBodyRow.classList.add('isFile');
+                fileListBodyRowName.classList.add('renameFile');
                 const fileListBodyRowOps = fileListBodyRow.appendChild(document.createElement('td'));
-                const fileListBodyRowOpsDown = fileListBodyRowOps.appendChild(document.createElement('button'));
+                const fileListBodyRowOpsDown = fileListBodyRowOps.appendChild(document.createElement('td')).appendChild(document.createElement('button'));
                 fileListBodyRowOpsDown.innerHTML = '&#xe896;';
                 fileListBodyRowOpsDown.className = 'down';
-                const fileListBodyRowOpsDel = fileListBodyRowOps.appendChild(document.createElement('button'));
+                const fileListBodyRowOpsDel = fileListBodyRowOps.appendChild(document.createElement('td')).appendChild(document.createElement('button'));
                 fileListBodyRowOpsDel.innerHTML = '&#xe74d;';
                 fileListBodyRowOpsDel.className = 'del';
-            }
+                fileListBodyRowOpsDown.parentElement.className = fileListBodyRowOpsDel.parentElement.className = 'fileOpsCell';
+            } else
+                fileListBodyRow.classList.add('dir');
         }
         _('details').replaceChildren(fileListTable);
-        Array.from(__('fIcon')).forEach(fileOpen => fileOpen.addEventListener('click', (e) => { window.open(e.target.parentElement.getAttribute('filePath')); }));
+        Array.from(__('fileLn isFile')).forEach(fileOpen => fileOpen.addEventListener('click', () => { window.open(fileOpen.getAttribute('filePath'), '_blank'); }));
         Array.from(__('down')).forEach(fileDown => fileDown.addEventListener('click', (e) => {
-            fileAction(e.target.parentElement.parentElement.getAttribute('filePath'), 'download', e.target.parentElement.parentElement.getAttribute('fileName'), null);
+            e.stopPropagation();
+            fileAction(e.target.parentElement.parentElement.parentElement.getAttribute('filePath'), 'download', e.target.parentElement.parentElement.parentElement.getAttribute('fileName'), null);
         }));
         Array.from(__('del')).forEach(fileDel => fileDel.addEventListener('click', (e) => {
-            fileAction(e.target.parentElement.parentElement.getAttribute('filePath'), 'delete', null, null);
+            e.stopPropagation();
+            fileAction(e.target.parentElement.parentElement.parentElement.getAttribute('filePath'), 'delete', null, null);
         }));
         Array.from(__('renameFile')).forEach(fileRen => fileRen.addEventListener('click', showRenameForm));
-    })
+        Array.from(__('dir')).forEach(dirOpen => dirOpen.addEventListener('click', () => { listFiles(dirOpen.getAttribute('filePath')); }));
+    });
 }
 
 function showRenameForm(event) {
-    event.target.removeEventListener('click', showRenameForm);
+    event.stopPropagation();
     const renameForm = document.createElement('form');
     const renameFormText = renameForm.appendChild(document.createElement('input'));
     renameFormText.value = event.target.parentElement.parentElement.getAttribute('fileName');
     renameFormText.autofocus = true;
     renameFormText.id = 'newName';
+    renameFormText.addEventListener('click', (e) => { e.stopPropagation(); });
     renameFormText.addEventListener('focusout', (e) => {
-        e.target.parentElement.parentElement.addEventListener('click', showRenameForm);
         e.target.parentElement.parentElement.textContent = e.target.parentElement.parentElement.parentElement.parentElement.getAttribute('fileName');
     });
     const renameFormBtn = renameForm.appendChild(document.createElement('button'));
@@ -113,7 +123,7 @@ function fileAction(path, action, name, newPath) {
     else {
         req.then(res => res.json()).then(data => {
             _('status').textContent = (data['success'] ? 'Success: ' : 'Failed: ') + data['action'] + ' ' + data['target'];
-        }).then(listFiles);
+        }).then(listFiles(currentDir));
     }
 }
 
@@ -135,17 +145,23 @@ function uploadFormEvent(e) {
     let total_size = 0;
     const upFileInfo = document.createDocumentFragment();
     const table_file_head = upFileInfo.appendChild(document.createElement('tr'));
+    table_file_head.append(document.createElement('th'));
     table_file_head.appendChild(document.createElement('th')).textContent = 'Name';
     table_file_head.appendChild(document.createElement('th')).textContent = 'Size (bytes)';
     Array.from(e.target.files).forEach(file => {
         const table_file_row = upFileInfo.appendChild(document.createElement('tr'));
+        const tableFileRowIcon = table_file_row.appendChild(document.createElement('th'));
+        tableFileRowIcon.innerHTML = fileIcon(file.name);
+        tableFileRowIcon.classList.add('msIcon');
+        tableFileRowIcon.classList.add('fIcon');
         table_file_row.appendChild(document.createElement('td')).textContent = file.name;
         table_file_row.appendChild(document.createElement('td')).textContent = file.size;
         total_size += file.size;
     });
     const table_file_total = upFileInfo.appendChild(document.createElement('tr'));
-    table_file_total.appendChild(document.createElement('td')).textContent = e.target.files.length;
-    table_file_total.appendChild(document.createElement('td')).textContent = total_size;
+    table_file_total.append(document.createElement('th'));
+    table_file_total.appendChild(document.createElement('th')).textContent = e.target.files.length;
+    table_file_total.appendChild(document.createElement('th')).textContent = total_size;
     _('pendingFiles').replaceChildren(upFileInfo);
 }
 
@@ -173,7 +189,7 @@ function completeHandler(event) {
     _("status").textContent = "Upload Complete";
     _("progressBar").value = 0;
     _("status").textContent = "File Uploaded";
-    listFiles();
+    listFiles(currentDir);
 }
 function errorHandler(event) {
     _("status").textContent = "Upload Failed";
@@ -191,6 +207,7 @@ function fileIcon(filename) {
         case 'ico':
             return '&#xe8b9;';
         case 'mp4':
+        case 'MP4':
         case 'mov':
             return '&#xe714;';
         case 'mp3':
