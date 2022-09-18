@@ -52,15 +52,16 @@ button {
 
 .btn-cover:hover,
 button:hover {
-    box-shadow: 0 12px 10px 0 black;
+    box-shadow: 0 1px 10px 0 black;
     cursor: pointer;
-    background-color: yellowgreen;
+    background-color: black;
+    color: white;
 }
 
 .btn-cover:active,
 button:active {
-    transform: translateY(3px);
-    box-shadow: 0 9px 7px 0 black;
+    transform: scale(0.9);
+    box-shadow: 0 1px 9px 0 black;
 }
 
 .down {
@@ -82,7 +83,7 @@ progress {
 }
 
 .fileLn:hover {
-    box-shadow: 0 1px 10px 0 grey;
+    box-shadow: 0 1px 10px 0 black;
     font-weight: bold;
 }
 
