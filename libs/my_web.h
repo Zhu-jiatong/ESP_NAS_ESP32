@@ -19,7 +19,7 @@ bool isUpload(false);
 void begin_web(const String domain, const char *ap_ssid, const char *ap_psk);
 void getFile(AsyncWebServerRequest *request);
 void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
-void handleFile(AsyncWebServerRequest *request);
+void handleFile(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
 void handleNotFound(AsyncWebServerRequest *request);
 void handleCardinfo(AsyncWebServerRequest *request);
 void systemInfo(AsyncWebServerRequest *request);
@@ -27,6 +27,7 @@ void handleListFiles(AsyncWebServerRequest *request);
 void promptAuth(AsyncWebServerRequest *request);
 String listFiles();
 String getMime(const String &path);
+String listFiles(String path);
 
 void begin_web(const String domain, const char *ap_ssid, const char *ap_psk = nullptr)
 {
@@ -41,7 +42,8 @@ void begin_web(const String domain, const char *ap_ssid, const char *ap_psk = nu
               { promptAuth(request);
                 request->send(SD, "/index.html"); });
     server.on("/listfiles", HTTP_GET, handleListFiles);
-    server.on("/file", HTTP_GET, handleFile);
+    server.on(
+        "/file", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, handleFile);
     server.on("/cardinfo", HTTP_GET, handleCardinfo);
     server.on("/systemInfo", systemInfo);
     server.on("/system", HTTP_GET, [](AsyncWebServerRequest *request)
@@ -76,18 +78,23 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
 void handleListFiles(AsyncWebServerRequest *request)
 {
     promptAuth(request);
+    request->send(200, "application/json", listFiles(request->getParam("path")->value()));
+}
+
+String listFiles(String path)
+{
     JSONVar ret;
-    auto root = SD.open("/");
+    auto root = SD.open(path);
     decltype(root.openNextFile()) foundFile;
     while (foundFile = root.openNextFile())
     {
         ret[foundFile.name()]["size"] = readableSize(foundFile.size());
         ret[foundFile.name()]["isDir"] = foundFile.isDirectory();
-        ret[foundFile.name()]["view"] = foundFile.isDirectory() ? SD.exists(foundFile.path() + String("/comix.html")) ? foundFile.path() + String("/comix.html") : emptyString : foundFile.name();
+        ret[foundFile.name()]["path"] = foundFile.path();
     }
-    root.close();
     foundFile.close();
-    request->send(200, "application/json", JSON.stringify(ret));
+    root.close();
+    return JSON.stringify(ret);
 }
 
 void handleCardinfo(AsyncWebServerRequest *request)
@@ -115,11 +122,48 @@ void handleNotFound(AsyncWebServerRequest *request)
     }
 }
 
-void handleFile(AsyncWebServerRequest *request)
+void handleFile(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
 {
-    if (request->hasParam("name") && request->hasParam("action"))
+    String rcvStr;
+    for (size_t i = 0; i < len; ++i)
+        rcvStr += char(data[i]);
+    auto rcvData = JSON.parse(rcvStr);
+    String filePath = (const char *)rcvData["path"];
+    if (!SD.exists(filePath))
     {
-        String fileName = "/" + request->getParam("name")->value();
+        request->send(400, "text/plain", "ERROR: file does not exist" + filePath);
+        return;
+    }
+    String action = (const char *)rcvData["action"];
+    String newPath = (const char *)rcvData["newPath"];
+    JSONVar ret;
+    if (action == "download")
+    {
+        request->send(SD, filePath, String(), true);
+        return;
+    }
+    else if (action == "rename")
+    {
+        ret["success"] = SD.rename(filePath, newPath);
+        ret["action"] = action;
+        ret["target"] = filePath;
+    }
+    else if (action == "delete")
+    {
+        ret["success"] = SD.remove(filePath);
+        ret["action"] = action;
+        ret["target"] = filePath;
+    }
+    else
+    {
+        request->send(400, "text/plain", "ERROR: invalid action param");
+        return;
+    }
+    request->send(200, "application/json", JSON.stringify(ret));
+
+    /* if (request->hasParam("name") && request->hasParam("action"))
+    {
+        String fileName = request->getParam("name")->value();
         String fileAction = request->getParam("action")->value();
 
         if (!SD.exists(fileName))
@@ -138,7 +182,7 @@ void handleFile(AsyncWebServerRequest *request)
         }
     }
     else
-        request->send(400, "text/plain", "ERROR: name and action params required");
+        request->send(400, "text/plain", "ERROR: name and action params required"); */
 }
 
 void systemInfo(AsyncWebServerRequest *request)

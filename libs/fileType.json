@@ -10,5 +10,6 @@
     ".ico": "image/x-icon",
     ".xml": "text/xml",
     ".mp4": "video/mp4",
+    ".MP4": "video/mp4",
     ".pdf": "application/pdf"
 }

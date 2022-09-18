@@ -15,10 +15,12 @@ table {
     width: max-content;
     max-width: 100%;
     border-collapse: collapse;
+    font-weight: normal;
 }
 
 td {
     padding-right: 10px;
+    font-weight: inherit;
 }
 
 .header {
@@ -40,7 +42,7 @@ button {
     color: black;
     font-size: inherit;
     font-family: inherit;
-    font-weight: inherit;
+    font-weight: bolder;
     background-color: skyblue;
     border: none;
     border-radius: 8px;
@@ -50,25 +52,26 @@ button {
 
 .btn-cover:hover,
 button:hover {
-    box-shadow: 0 12px 10px 0 black;
+    box-shadow: 0 1px 10px 0 black;
     cursor: pointer;
-    background-color: yellowgreen;
+    background-color: black;
+    color: white;
 }
 
 .btn-cover:active,
 button:active {
-    transform: translateY(3px);
-    box-shadow: 0 9px 7px 0 black;
+    transform: scale(0.9);
+    box-shadow: 0 1px 9px 0 black;
 }
 
-#down {
+.down {
     background-color: forestgreen;
     color: white;
     display: none;
     font-family: 'ms-ico';
 }
 
-#del {
+.del {
     background-color: red;
     color: white;
     display: none;
@@ -79,16 +82,41 @@ progress {
     height: 45px;
 }
 
-#fileLn:hover {
-    box-shadow: 0 1px 10px 0 grey;
+.fileLn:hover {
+    box-shadow: 0 1px 10px 0 black;
+    font-weight: bold;
+}
+
+button:hover,
+.clickable:hover {
     cursor: pointer;
 }
 
-#fileLn:hover #down,
-#fileLn:hover #del {
+.fileLn:hover .down,
+.fileLn:hover .del {
     display: inline;
 }
 
-.fIcon {
+.msIcon {
     font-family: 'ms-ico';
+}
+
+.fileOpsCell {
+    padding: 0;
+}
+
+input {
+    font-size: inherit;
+}
+
+.renameFile:hover {
+    cursor: text;
+}
+
+.fIcon {
+    font-weight: bolder;
+}
+
+th {
+    font-weight: bold;
 }
