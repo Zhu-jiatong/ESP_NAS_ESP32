@@ -1,20 +1,26 @@
 #if !defined(MY_HARDWARE_h)
 #define MY_HARDWARE_h
 
-#include "my_display.h"
 #include <SD.h>
 #include "my_cfg.h"
 #include "my_web.h"
-namespace custH
+
+namespace cust
 {
     void begin()
     {
-        SD.begin(SS, SPI, 80000000);
-        initOLED();
         touchAttachInterrupt(
             T0, []() {}, 40);
         pinMode(connect_LED_pin, OUTPUT);
         digitalWrite(connect_LED_pin, annodeRgbDigital(LOW));
+    }
+
+    void initOLED()
+    {
+        display.begin(SSD1306_SWITCHCAPVCC, 0x3C, false);
+        display.setTextColor(SSD1306_WHITE);
+        display.setTextSize(1);
+        display.clearDisplay();
     }
 
     void sleep_device()
@@ -53,6 +59,6 @@ namespace custH
         display.printf("To sleep: %i sec", update_sleep_timer());
         display.display();
     }
-} // namespace custH
+} // namespace cust
 
 #endif // MY_HARDWARE_h

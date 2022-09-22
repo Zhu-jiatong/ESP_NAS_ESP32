@@ -4,12 +4,20 @@
 
 void setup()
 {
-    custH::begin();
-    begin_web(DNS_domain, ap_ssid, ap_psk);
+    SD.begin(SS, SPI, 80000000);
+    cust::initOLED();
+    cust::loadCfgFromFile("/userCfg.json");
+    cust::begin();
+    display.println("hardware success!");
+    display.display();
+    begin_web();
+    display.print("web success!");
+    display.display();
+    delay(500);
 }
 
 void loop()
 {
     dns.processNextRequest();
-    custH::refresh_main_screen();
+    cust::refresh_main_screen();
 }

@@ -9,7 +9,10 @@ var uploadForm;
 var currentDir = "/";
 
 window.addEventListener('load', function () {
-    _('listFiles').addEventListener('click', () => listFiles("/"));
+    _('listFiles').addEventListener('click', () => {
+        currentDir = "/";
+        listFiles(currentDir);
+    });
     listFiles("/");
     fetch('uploadForm.html').then(res => res.text()).then(data => uploadForm = data);
     fetch('/cardinfo').then(res => res.json()).then(data => {
@@ -22,8 +25,17 @@ window.addEventListener('load', function () {
 });
 
 function listFiles(dirPath) {
+    currentDir = dirPath;
     _('details').textContent = 'loading...';
     _('detailsheader').textContent = '';
+    _('status').textContent = currentDir + '/';
+    const mkdirText = _('status').appendChild(document.createElement('input'));
+    mkdirText.placeholder = 'new folder name';
+    const mkdirBtn = _('status').appendChild(document.createElement('button'));
+    mkdirBtn.innerHTML = '&#xe8f4';
+    mkdirBtn.addEventListener('click', () => {
+        fileAction(currentDir, 'mkdir', null, mkdirText.value);
+    });
     const url = new URL('/listfiles', window.location.origin);
     url.searchParams.append('path', dirPath);
     fetch(url).then(res => res.json()).then(data => {
@@ -52,19 +64,21 @@ function listFiles(dirPath) {
             const fileListBodyRowName = fileListBodyRow.appendChild(document.createElement('td')).appendChild(document.createElement('span'));
             fileListBodyRowName.textContent = fileKey;
             fileListBodyRow.appendChild(document.createElement('td')).textContent = data[fileKey]['size'];
+            const fileListBodyRowOps = fileListBodyRow.appendChild(document.createElement('td'));
+            const fileListBodyRowOpsDown = fileListBodyRowOps.appendChild(document.createElement('td')).appendChild(document.createElement('button'));
+            fileListBodyRowOpsDown.innerHTML = '&#xe896;';
+            fileListBodyRowOpsDown.className = 'down';
+            const fileListBodyRowOpsDel = fileListBodyRowOps.appendChild(document.createElement('td')).appendChild(document.createElement('button'));
+            fileListBodyRowOpsDel.innerHTML = '&#xe74d;';
+            fileListBodyRowOpsDel.className = 'del';
+            fileListBodyRowOpsDown.parentElement.className = fileListBodyRowOpsDel.parentElement.className = 'fileOpsCell';
             if (!data[fileKey]['isDir']) {
                 fileListBodyRow.classList.add('isFile');
                 fileListBodyRowName.classList.add('renameFile');
-                const fileListBodyRowOps = fileListBodyRow.appendChild(document.createElement('td'));
-                const fileListBodyRowOpsDown = fileListBodyRowOps.appendChild(document.createElement('td')).appendChild(document.createElement('button'));
-                fileListBodyRowOpsDown.innerHTML = '&#xe896;';
-                fileListBodyRowOpsDown.className = 'down';
-                const fileListBodyRowOpsDel = fileListBodyRowOps.appendChild(document.createElement('td')).appendChild(document.createElement('button'));
-                fileListBodyRowOpsDel.innerHTML = '&#xe74d;';
-                fileListBodyRowOpsDel.className = 'del';
-                fileListBodyRowOpsDown.parentElement.className = fileListBodyRowOpsDel.parentElement.className = 'fileOpsCell';
-            } else
+            } else {
                 fileListBodyRow.classList.add('dir');
+                fileListBodyRowOpsDown.disabled = true;
+            }
         }
         _('details').replaceChildren(fileListTable);
         Array.from(__('fileLn isFile')).forEach(fileOpen => fileOpen.addEventListener('click', () => { window.open(fileOpen.getAttribute('filePath'), '_blank'); }));
@@ -77,7 +91,10 @@ function listFiles(dirPath) {
             fileAction(e.target.parentElement.parentElement.parentElement.getAttribute('filePath'), 'delete', null, null);
         }));
         Array.from(__('renameFile')).forEach(fileRen => fileRen.addEventListener('click', showRenameForm));
-        Array.from(__('dir')).forEach(dirOpen => dirOpen.addEventListener('click', () => { listFiles(dirOpen.getAttribute('filePath')); }));
+        Array.from(__('dir')).forEach(dirOpen => dirOpen.addEventListener('click', () => {
+            currentDir = dirOpen.getAttribute('filePath');
+            listFiles(currentDir);
+        }));
     });
 }
 
@@ -96,8 +113,6 @@ function showRenameForm(event) {
     renameFormBtn.innerHTML = '&#xe73e;';
     renameFormBtn.addEventListener('mousedown', (e) => {
         e.preventDefault();
-        console.log(e.target.parentElement.parentElement.parentElement.parentElement.getAttribute('filePath'));
-        console.log(e.target.parentElement.parentElement.parentElement.parentElement.getAttribute('filePath').replace(e.target.parentElement.parentElement.parentElement.parentElement.getAttribute('fileName'), _('newName').value));
         fileAction(e.target.parentElement.parentElement.parentElement.parentElement.getAttribute('filePath'), 'rename', null, e.target.parentElement.parentElement.parentElement.parentElement.getAttribute('filePath').replace(e.target.parentElement.parentElement.parentElement.parentElement.getAttribute('fileName'), _('newName').value));
     });
     event.target.replaceChildren(renameForm);
@@ -173,7 +188,9 @@ function uploadFile() {
     xhr.addEventListener("load", completeHandler, false);
     xhr.addEventListener("error", errorHandler, false);
     xhr.addEventListener("abort", abortHandler, false);
-    xhr.open("POST", "/");
+    const url = new URL('/', window.location.origin);
+    url.searchParams.append('path', currentDir + '/');
+    xhr.open("POST", url);
     xhr.send(formdata);
 }
 function progressHandler(e) {
@@ -218,6 +235,7 @@ function fileIcon(filename) {
         case 'bin':
             return '&#xe943;';
         case 'pdf':
+            return '&#xea90;';
         case 'docx':
         case 'doc':
             return '&#xe8a5;';
@@ -225,6 +243,10 @@ function fileIcon(filename) {
             return '&#xe8d2;';
         case 'json':
             return '&#xe713;';
+        case 'zip':
+        case 'rar':
+        case '7z':
+            return '&#xf012'
 
         default:
             return '&#xe8b7;';
