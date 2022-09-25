@@ -2,7 +2,6 @@
 #define MY_WEB_h
 
 #include <Arduino_JSON.h>
-#include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <DNSServer.h>
 #include <WiFi.h>
@@ -10,11 +9,10 @@
 #include "my_cfg.h"
 #include "sysWebpage.h"
 #include <AsyncElegantOTA.h>
+#include "fileUtility.h"
 
 AsyncWebServer server(80);
 DNSServer dns;
-
-bool isUpload(false);
 
 void begin_web();
 void getFile(AsyncWebServerRequest *request);
@@ -25,10 +23,7 @@ void handleCardinfo(AsyncWebServerRequest *request);
 void systemInfo(AsyncWebServerRequest *request);
 void handleListFiles(AsyncWebServerRequest *request);
 void promptAuth(AsyncWebServerRequest *request);
-String listFiles();
 String getMime(const String &path);
-String listFiles(String path);
-bool deleteAll(String path);
 
 void begin_web()
 {
@@ -74,29 +69,14 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
 void handleListFiles(AsyncWebServerRequest *request)
 {
     promptAuth(request);
-    request->send(200, "application/json", listFiles(request->getParam("path")->value()));
-}
-
-String listFiles(String path)
-{
-    JSONVar ret;
-    File root = SD.open(path), foundFile;
-    while (foundFile = root.openNextFile())
-    {
-        ret[foundFile.name()]["size"] = readableSize(foundFile.size());
-        ret[foundFile.name()]["isDir"] = foundFile.isDirectory();
-        ret[foundFile.name()]["path"] = foundFile.path();
-    }
-    foundFile.close();
-    root.close();
-    return JSON.stringify(ret);
+    request->send(200, "application/json", cust::listFiles(request->getParam("path")->value()));
 }
 
 void handleCardinfo(AsyncWebServerRequest *request)
 {
     JSONVar ret;
-    ret["freesd"] = readableSize(SD.totalBytes() - SD.usedBytes());
-    ret["usedsd"] = readableSize(SD.usedBytes());
+    ret["freesd"] = cust::readableSize(SD.totalBytes() - SD.usedBytes());
+    ret["usedsd"] = cust::readableSize(SD.usedBytes());
     ret["val"] = String(SD.usedBytes());
     ret["max"] = String(SD.totalBytes());
     request->send(200, "application/json", JSON.stringify(ret));
@@ -136,7 +116,7 @@ void handleFile(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_
         else if (action == "rename")
             ret["success"] = SD.rename(filePath, newPath);
         else if (action == "delete")
-            ret["success"] = deleteAll(filePath);
+            ret["success"] = cust::deleteAll(filePath);
         else if (action == "mkdir")
             ret["success"] = SD.mkdir(filePath + "/" + newPath);
         else
@@ -164,9 +144,9 @@ void systemInfo(AsyncWebServerRequest *request)
                                                  : (tempSD = CARD_SD)    ? "SD"
                                                  : (tempSD = CARD_SDHC)  ? "SDHC"
                                                                          : "UNKNOWN";
-    ret["SD_TOTAL_SIZE"] = readableSize(SD.totalBytes());
-    ret["SD_USED_SIZE"] = readableSize(SD.usedBytes());
-    ret["SD_LEFT_SIZE"] = readableSize(SD.totalBytes() - SD.usedBytes());
+    ret["SD_TOTAL_SIZE"] = cust::readableSize(SD.totalBytes());
+    ret["SD_USED_SIZE"] = cust::readableSize(SD.usedBytes());
+    ret["SD_LEFT_SIZE"] = cust::readableSize(SD.totalBytes() - SD.usedBytes());
     ret["ESP_CHIP_MOD"] = ESP.getChipModel();
     ret["ESP_CHIP_CORE"] = ESP.getChipCores();
     ret["ESP_CHIP_REV"] = ESP.getChipRevision();
@@ -199,7 +179,7 @@ void systemInfo(AsyncWebServerRequest *request)
 
 String getMime(const String &path)
 {
-    return (const char *)JSON.parse(SD.open("/fileType.json").readString())[path.substring(path.lastIndexOf("."))];
+    return (const char *)cust::parseJSON("/fileType.json")[path.substring(path.lastIndexOf("."))];
 }
 
 void promptAuth(AsyncWebServerRequest *request)
@@ -208,26 +188,4 @@ void promptAuth(AsyncWebServerRequest *request)
         return request->requestAuthentication();
 }
 
-bool deleteAll(String path)
-{
-    if (SD.exists(path))
-    {
-        File root = SD.open(path);
-        if (root.isDirectory())
-        {
-            File found;
-            while (found = root.openNextFile())
-                deleteAll(found.path());
-            root.close();
-            return SD.rmdir(path);
-        }
-        else
-        {
-            root.close();
-            return SD.remove(path);
-        }
-    }
-    else
-        return false;
-}
 #endif // MY_WEB_h

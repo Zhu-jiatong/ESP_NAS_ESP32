@@ -4,7 +4,7 @@
 #include "utilityFunctions.h"
 #include <Arduino_JSON.h>
 #include <Adafruit_SSD1306.h>
-Adafruit_SSD1306 display(128, 64, &Wire, -1);
+Adafruit_SSD1306 display(128, 64, &Wire, -1, 800000);
 
 String ap_ssid{"NAS"};
 String ap_psk{""};
