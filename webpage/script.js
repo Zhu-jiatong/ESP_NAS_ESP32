@@ -222,10 +222,12 @@ function fileIcon(filename) {
         case 'png':
         case 'gif':
         case 'ico':
+        case 'webp':
             return '&#xe8b9;';
         case 'mp4':
         case 'MP4':
         case 'mov':
+        case 'webm':
             return '&#xe714;';
         case 'mp3':
             return '&#xe8d6;';

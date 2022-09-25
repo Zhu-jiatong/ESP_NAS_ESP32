@@ -8,8 +8,8 @@ Adafruit_SSD1306 display(128, 64, &Wire, -1, 800000);
 
 String ap_ssid{"NAS"};
 String ap_psk{""};
-String http_id{"Tony_Zhu_admin"};
-String http_psk{"iLoveHuman(s)"};
+String http_id{""};
+String http_psk{""};
 String DNS_domain{"www.nas.com"};
 
 uint wake_time(secToMil(90));

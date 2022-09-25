@@ -23,15 +23,15 @@ void handleCardinfo(AsyncWebServerRequest *request);
 void systemInfo(AsyncWebServerRequest *request);
 void handleListFiles(AsyncWebServerRequest *request);
 void promptAuth(AsyncWebServerRequest *request);
-String getMime(const String &path);
+const char* getMime(const String &path);
 
 void begin_web()
 {
     WiFi.softAP(ap_ssid.c_str(), ap_psk.c_str());
     WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
-                 {  digitalWrite(connect_LED_pin, annodeRgbDigital(HIGH));
+                 {  digitalWrite(connect_LED_pin, HIGH);
                     delay(125);
-                    digitalWrite(connect_LED_pin, annodeRgbDigital(LOW)); },
+                    digitalWrite(connect_LED_pin, LOW); },
                  ARDUINO_EVENT_WIFI_AP_STACONNECTED);
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
               { promptAuth(request);
@@ -110,7 +110,7 @@ void handleFile(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_
         JSONVar ret;
         if (action == "download")
         {
-            request->send(SD, filePath, String(), true);
+            request->send(SD, filePath);
             return;
         }
         else if (action == "rename")
@@ -177,9 +177,9 @@ void systemInfo(AsyncWebServerRequest *request)
     request->send(200, "application/json", JSON.stringify(ret));
 }
 
-String getMime(const String &path)
+const char* getMime(const String &path)
 {
-    return (const char *)cust::parseJSON("/fileType.json")[path.substring(path.lastIndexOf("."))];
+    return cust::parseJSON("/fileType.json")[path.substring(path.lastIndexOf("."))];
 }
 
 void promptAuth(AsyncWebServerRequest *request)

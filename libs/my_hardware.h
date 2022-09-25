@@ -12,7 +12,7 @@ namespace cust
         touchAttachInterrupt(
             T0, []() {}, 40);
         pinMode(connect_LED_pin, OUTPUT);
-        digitalWrite(connect_LED_pin, annodeRgbDigital(LOW));
+        digitalWrite(connect_LED_pin, LOW);
     }
 
     void initOLED()
