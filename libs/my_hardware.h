@@ -36,17 +36,16 @@ namespace cust
 
     uint8_t update_sleep_timer()
     {
-        static ulong prevMillis{}, leftMillis{};
-        ulong nowMillis(millis()), passMillis{nowMillis - prevMillis};
-        leftMillis = wake_time - passMillis;
-        if (!WiFi.softAPgetStationNum())
-        {
-            if (passMillis >= wake_time)
-                sleep_device();
-        }
-        else
+        static unsigned long prevMillis{};
+        unsigned long nowMillis(millis()),
+            passMillis{nowMillis - prevMillis};
+
+        if (WiFi.softAPgetStationNum())
             prevMillis = nowMillis;
-        return milToSec(leftMillis);
+        else if (passMillis >= wake_time)
+            sleep_device();
+
+        return milToSec((wake_time - passMillis));
     }
 
     void refresh_main_screen()

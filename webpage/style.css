@@ -23,12 +23,24 @@ td {
     font-weight: inherit;
 }
 
-.header {
+.fSizeVal {
+    text-align: right;
+}
+
+header {
     background-color: lightblue;
     color: black;
+    padding-left: 25px;
+    padding-right: 25px;
+}
+
+.header {
     font-size: 30pt;
     font-weight: bolder;
-    padding-left: 25px;
+}
+
+#SDInfo {
+    float: right;
 }
 
 .main-text {

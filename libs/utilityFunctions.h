@@ -6,5 +6,4 @@
 #define annodeRgbDigital(val) (1 - val)
 #define annodeRgbAnalog(val) (255 - val)
 
-
 #endif // UTILITY_FUNCT_h
