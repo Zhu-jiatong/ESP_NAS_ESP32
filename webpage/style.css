@@ -132,3 +132,24 @@ input {
 th {
     font-weight: bold;
 }
+
+.breadcrumb {
+    list-style: none;
+    display: inline;
+}
+
+.breadcrumb li {
+    display: inline;
+}
+
+.breadcrumb li:hover {
+    cursor: pointer;
+}
+
+.breadcrumb li+li:after {
+    content: " > ";
+}
+
+.inlineForm {
+    display: inline;
+}

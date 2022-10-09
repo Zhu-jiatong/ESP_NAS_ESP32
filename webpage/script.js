@@ -8,6 +8,18 @@ function __(cl) {
 var uploadForm;
 var currentDir = "/";
 
+function sizeAdjust(size) {
+    let intSize = Number(size);
+    const sizeUnit = new Array(' B', ' KB', ' MB', ' GB');
+    for (const unit of sizeUnit) {
+        if (intSize >= 1024) {
+            intSize /= 1024;
+        }
+        else
+            return intSize.toFixed(1) + unit;
+    }
+}
+
 window.addEventListener('load', function () {
     _('listFiles').addEventListener('click', () => {
         currentDir = "/";
@@ -18,9 +30,9 @@ window.addEventListener('load', function () {
     fetch('/cardinfo').then(res => res.json()).then(data => {
         _("cardinfo").max = data['max'];
         _("cardinfo").value = data['val'];
-        _("usedsd").textContent = data['usedsd'];
-        _("freesd").textContent = data['freesd'];
-    })
+        _("usedsd").textContent = sizeAdjust(data['val']);
+        _("freesd").textContent = sizeAdjust(data['max'] - data['val']);
+    });
     _("usedsd").textContent = _("freesd").textContent = "...";
 });
 
@@ -29,11 +41,26 @@ function listFiles(dirPath) {
     _('details').textContent = 'loading...';
     _('detailsheader').textContent = '';
     _('mkdirField').textContent = currentDir + '/';
-    const mkdirText = _('mkdirField').appendChild(document.createElement('input'));
+    const dirnavUl = document.createElement('ul');
+    dirnavUl.classList.add('breadcrumb');
+    currentDir.split('/').forEach(subStr => {
+        const dirnavUlLi = dirnavUl.appendChild(document.createElement('li'));
+        dirnavUlLi.textContent = subStr;
+        dirnavUlLi.setAttribute('path', currentDir.split(subStr)[0] + subStr);
+        dirnavUlLi.addEventListener('click', (e) => {
+            listFiles(e.target.getAttribute('path'));
+        });
+    });
+    _('mkdirField').replaceChildren(dirnavUl);
+    const mkdirForm = _('mkdirField').appendChild(document.createElement('form'));
+    mkdirForm.classList.add('inlineForm');
+    const mkdirText = mkdirForm.appendChild(document.createElement('input'));
     mkdirText.placeholder = 'new folder name';
-    const mkdirBtn = _('mkdirField').appendChild(document.createElement('button'));
+    const mkdirBtn = mkdirForm.appendChild(document.createElement('button'));
     mkdirBtn.innerHTML = '&#xe8f4';
-    mkdirBtn.addEventListener('click', () => {
+    mkdirBtn.type = 'submit';
+    mkdirForm.addEventListener('submit', (e) => {
+        e.preventDefault();
         fileAction(currentDir, 'mkdir', null, mkdirText.value);
     });
     const url = new URL('/listfiles', window.location.origin);
@@ -64,9 +91,11 @@ function listFiles(dirPath) {
             const fileListBodyRowName = fileListBodyRow.appendChild(document.createElement('td')).appendChild(document.createElement('span'));
             fileListBodyRowName.textContent = fileKey;
             const fileListBodyRowSize = fileListBodyRow.appendChild(document.createElement('td'));
-            fileListBodyRowSize.textContent = data[fileKey]['size'];
-            fileListBodyRowSize.classList.add('fSizeVal');
-            fileListBodyRowSize.title = data[fileKey]['adjustSize'];
+            if (data[fileKey].hasOwnProperty('size')) {
+                fileListBodyRowSize.textContent = (data[fileKey]['size'] / 1024.0).toFixed(1) + ' KB';
+                fileListBodyRowSize.classList.add('fSizeVal');
+                fileListBodyRowSize.title = (sizeAdjust(data[fileKey]['size']));
+            }
             const fileListBodyRowOps = fileListBodyRow.appendChild(document.createElement('td'));
             const fileListBodyRowOpsDown = fileListBodyRowOps.appendChild(document.createElement('td')).appendChild(document.createElement('button'));
             fileListBodyRowOpsDown.innerHTML = '&#xe896;';

@@ -57,8 +57,7 @@ String listFiles(const String &path)
         if (!foundFile.isDirectory())
         {
             ret[foundFile.name()]["isDir"] = false;
-            ret[foundFile.name()]["size"] = String(foundFile.size() / 1024.0, 1) + " KB";
-            ret[foundFile.name()]["adjustSize"] = readableSize(foundFile.size());
+            ret[foundFile.name()]["size"] = String(foundFile.size());
         }
         else
             ret[foundFile.name()]["isDir"] = true;

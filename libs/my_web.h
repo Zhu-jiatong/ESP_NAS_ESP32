@@ -14,6 +14,8 @@
 AsyncWebServer server(80);
 DNSServer dns;
 
+const char *uploadFile = "";
+
 void begin_web();
 void getFile(AsyncWebServerRequest *request);
 void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
@@ -30,11 +32,11 @@ const char *getMime(const String &path);
 void begin_web()
 {
     WiFi.softAP(ap_ssid.c_str(), ap_psk.c_str());
-    WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
+    /* WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
                  {  digitalWrite(connect_LED_pin, HIGH);
                     delay(125);
                     digitalWrite(connect_LED_pin, LOW); },
-                 ARDUINO_EVENT_WIFI_AP_STACONNECTED);
+                 ARDUINO_EVENT_WIFI_AP_STACONNECTED); */
     server.serveStatic("/", SD, systemDir.c_str()).setDefaultFile("index.html").setAuthentication(http_id.c_str(), http_psk.c_str());
     server.on("/listfiles", HTTP_GET, handleListFiles);
     server.on(
@@ -61,11 +63,15 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
 {
     promptAuth(request);
     if (!index) // open the file on first call and store the file handle in the request object
+    {
         request->_tempFile = SD.open(request->getParam("path")->value() + filename, FILE_WRITE);
+        uploadFile = request->_tempFile.name();
+    }
     request->_tempFile.write(data, len);
     if (final)
     { // close the file handle as the upload is now done
         request->_tempFile.close();
+        uploadFile = "";
         request->redirect("/");
     }
 }
@@ -80,8 +86,6 @@ void handleCardinfo(AsyncWebServerRequest *request)
 {
     promptAuth(request);
     JSONVar ret;
-    ret["freesd"] = cust::readableSize(SD.totalBytes() - SD.usedBytes());
-    ret["usedsd"] = cust::readableSize(SD.usedBytes());
     ret["val"] = String(SD.usedBytes());
     ret["max"] = String(SD.totalBytes());
     request->send(200, "application/json", JSON.stringify(ret));
