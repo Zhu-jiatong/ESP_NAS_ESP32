@@ -8,15 +8,22 @@
 </head>
 
 <body>
-    <header class="header pad"><span class="msIcon">&#xe753;</span> Tony's Private NAS</header>
+    <header>
+        <span class="header">
+            <span class="msIcon">&#xe753;</span> Tony's Private NAS </span>
+        <span id="SDInfo">
+            <span id="usedsd"></span>
+            <progress id="cardinfo"></progress> <span id="freesd"></span>
+        </span>
+    </header>
     <div class="main-text pad">
         <p>
             <button id="listFiles">&#xec50;</button>
             <button onclick="showUploadForm()">&#xe898;</button>
             <button onclick="location.reload()">&#xe72c;</button>
             <button onclick="window.open('/system')">&#xe713;</button>
+            <span id="mkdirField"></span>
         </p>
-        <p><span id="usedsd"></span> <progress id="cardinfo"></progress> <span id="freesd"></span></p>
         <p id="status"></p>
         <p id="detailsheader"></p>
         <p id="details"></p>

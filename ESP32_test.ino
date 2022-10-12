@@ -6,7 +6,7 @@ void setup()
 {
     SD.begin(SS, SPI, 80000000);
     cust::initOLED();
-    cust::loadCfgFromFile("/userCfg.json");
+    cust::loadCfgFromFile(cfgPath);
     cust::begin();
     display.println("hardware success!");
     display.display();

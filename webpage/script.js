@@ -8,6 +8,18 @@ function __(cl) {
 var uploadForm;
 var currentDir = "/";
 
+function sizeAdjust(size) {
+    let intSize = Number(size);
+    const sizeUnit = new Array(' B', ' KB', ' MB', ' GB');
+    for (const unit of sizeUnit) {
+        if (intSize >= 1024) {
+            intSize /= 1024;
+        }
+        else
+            return intSize.toFixed(1) + unit;
+    }
+}
+
 window.addEventListener('load', function () {
     _('listFiles').addEventListener('click', () => {
         currentDir = "/";
@@ -18,9 +30,9 @@ window.addEventListener('load', function () {
     fetch('/cardinfo').then(res => res.json()).then(data => {
         _("cardinfo").max = data['max'];
         _("cardinfo").value = data['val'];
-        _("usedsd").textContent = data['usedsd'];
-        _("freesd").textContent = data['freesd'];
-    })
+        _("usedsd").textContent = sizeAdjust(data['val']);
+        _("freesd").textContent = sizeAdjust(data['max'] - data['val']);
+    });
     _("usedsd").textContent = _("freesd").textContent = "...";
 });
 
@@ -28,12 +40,27 @@ function listFiles(dirPath) {
     currentDir = dirPath;
     _('details').textContent = 'loading...';
     _('detailsheader').textContent = '';
-    _('status').textContent = currentDir + '/';
-    const mkdirText = _('status').appendChild(document.createElement('input'));
+    _('mkdirField').textContent = currentDir + '/';
+    const dirnavUl = document.createElement('ul');
+    dirnavUl.classList.add('breadcrumb');
+    currentDir.split('/').forEach(subStr => {
+        const dirnavUlLi = dirnavUl.appendChild(document.createElement('li'));
+        dirnavUlLi.textContent = subStr;
+        dirnavUlLi.setAttribute('path', currentDir.split(subStr)[0] + subStr);
+        dirnavUlLi.addEventListener('click', (e) => {
+            listFiles(e.target.getAttribute('path'));
+        });
+    });
+    _('mkdirField').replaceChildren(dirnavUl);
+    const mkdirForm = _('mkdirField').appendChild(document.createElement('form'));
+    mkdirForm.classList.add('inlineForm');
+    const mkdirText = mkdirForm.appendChild(document.createElement('input'));
     mkdirText.placeholder = 'new folder name';
-    const mkdirBtn = _('status').appendChild(document.createElement('button'));
+    const mkdirBtn = mkdirForm.appendChild(document.createElement('button'));
     mkdirBtn.innerHTML = '&#xe8f4';
-    mkdirBtn.addEventListener('click', () => {
+    mkdirBtn.type = 'submit';
+    mkdirForm.addEventListener('submit', (e) => {
+        e.preventDefault();
         fileAction(currentDir, 'mkdir', null, mkdirText.value);
     });
     const url = new URL('/listfiles', window.location.origin);
@@ -63,7 +90,12 @@ function listFiles(dirPath) {
             fileListBodyRowIcon.id = fileKey;
             const fileListBodyRowName = fileListBodyRow.appendChild(document.createElement('td')).appendChild(document.createElement('span'));
             fileListBodyRowName.textContent = fileKey;
-            fileListBodyRow.appendChild(document.createElement('td')).textContent = data[fileKey]['size'];
+            const fileListBodyRowSize = fileListBodyRow.appendChild(document.createElement('td'));
+            if (data[fileKey].hasOwnProperty('size')) {
+                fileListBodyRowSize.textContent = (data[fileKey]['size'] / 1024.0).toFixed(1) + ' KB';
+                fileListBodyRowSize.classList.add('fSizeVal');
+                fileListBodyRowSize.title = (sizeAdjust(data[fileKey]['size']));
+            }
             const fileListBodyRowOps = fileListBodyRow.appendChild(document.createElement('td'));
             const fileListBodyRowOpsDown = fileListBodyRowOps.appendChild(document.createElement('td')).appendChild(document.createElement('button'));
             fileListBodyRowOpsDown.innerHTML = '&#xe896;';
@@ -153,7 +185,7 @@ function showUploadForm() {
         uploadFile();
     });
     _('file').addEventListener('change', uploadFormEvent);
-    _('file').addEventListener('reset', uploadFormEvent);
+    _('fileForm').addEventListener('reset', uploadFormEvent);
 }
 
 function uploadFormEvent(e) {
@@ -181,8 +213,8 @@ function uploadFormEvent(e) {
 }
 
 function uploadFile() {
-    var formdata = new FormData();
-    Array.from(_("file").files).forEach(file => formdata.append("files", file));
+    //var formdata = new FormData(_('fileForm'));
+    //Array.from(_("file").files).forEach(file => formdata.append("files", file));
     var xhr = new XMLHttpRequest();
     xhr.upload.addEventListener("progress", progressHandler, false);
     xhr.addEventListener("load", completeHandler, false);
@@ -191,7 +223,7 @@ function uploadFile() {
     const url = new URL('/', window.location.origin);
     url.searchParams.append('path', currentDir + '/');
     xhr.open("POST", url);
-    xhr.send(formdata);
+    xhr.send(new FormData(_('fileForm')));
 }
 function progressHandler(e) {
     _('loaded_n_total').textContent = 'Uploaded ' + e.loaded + '/' + e.total + ' bytes';
@@ -222,10 +254,12 @@ function fileIcon(filename) {
         case 'png':
         case 'gif':
         case 'ico':
+        case 'webp':
             return '&#xe8b9;';
         case 'mp4':
         case 'MP4':
         case 'mov':
+        case 'webm':
             return '&#xe714;';
         case 'mp3':
             return '&#xe8d6;';

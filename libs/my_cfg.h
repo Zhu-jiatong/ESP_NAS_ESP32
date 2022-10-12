@@ -6,17 +6,20 @@
 #include <Adafruit_SSD1306.h>
 Adafruit_SSD1306 display(128, 64, &Wire, -1, 800000);
 
+const String systemDir{"/SystemFiles/"};
+const String cfgPath = systemDir + "userCfg.json";
+
 String ap_ssid{"NAS"};
 String ap_psk{""};
-String http_id{"Tony_Zhu_admin"};
-String http_psk{"iLoveHuman(s)"};
+String http_id{""};
+String http_psk{""};
 String DNS_domain{"www.nas.com"};
 
 uint wake_time(secToMil(90));
 const uint8_t connect_LED_pin(14);
 namespace cust
 {
-    void loadCfgFromFile(const char *path)
+    void loadCfgFromFile(const String &path)
     {
         JSONVar cfgData;
         if (SD.exists(path))
@@ -34,7 +37,7 @@ namespace cust
                 ap_ssid = (const char *)cfgData["ap_ssid"];
                 ap_psk = (const char *)cfgData["ap_psk"];
                 DNS_domain = (const char *)cfgData["DNS_domain"];
-                wake_time = secToMil((int)cfgData["wake_time"]);
+                wake_time = secToMil(atoi(cfgData["wake_time"]));
                 http_id = (const char *)cfgData["http_id"];
                 http_psk = (const char *)cfgData["http_psk"];
                 display.println("config loaded");
@@ -55,7 +58,7 @@ namespace cust
         cfgData["ap_ssid"] = ap_ssid;
         cfgData["ap_psk"] = ap_psk;
         cfgData["DNS_domain"] = DNS_domain;
-        cfgData["wake_time"] = (int)milToSec(wake_time);
+        cfgData["wake_time"] = String(milToSec(wake_time));
         cfgData["http_id"] = http_id;
         cfgData["http_psk"] = http_psk;
         newCfgFile.print(JSON.stringify(cfgData));

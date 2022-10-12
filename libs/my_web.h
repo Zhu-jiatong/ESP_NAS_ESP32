@@ -14,6 +14,8 @@
 AsyncWebServer server(80);
 DNSServer dns;
 
+const char *uploadFile = "";
+
 void begin_web();
 void getFile(AsyncWebServerRequest *request);
 void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
@@ -23,26 +25,30 @@ void handleCardinfo(AsyncWebServerRequest *request);
 void systemInfo(AsyncWebServerRequest *request);
 void handleListFiles(AsyncWebServerRequest *request);
 void promptAuth(AsyncWebServerRequest *request);
-String getMime(const String &path);
+void handleCfg(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
+void handleDeviceAction(AsyncWebServerRequest *request);
+const char *getMime(const String &path);
 
 void begin_web()
 {
     WiFi.softAP(ap_ssid.c_str(), ap_psk.c_str());
-    WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
-                 {  digitalWrite(connect_LED_pin, annodeRgbDigital(HIGH));
+    /* WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
+                 {  digitalWrite(connect_LED_pin, HIGH);
                     delay(125);
-                    digitalWrite(connect_LED_pin, annodeRgbDigital(LOW)); },
-                 ARDUINO_EVENT_WIFI_AP_STACONNECTED);
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-              { promptAuth(request);
-                request->send(SD, "/index.html"); });
+                    digitalWrite(connect_LED_pin, LOW); },
+                 ARDUINO_EVENT_WIFI_AP_STACONNECTED); */
+    server.serveStatic("/", SD, systemDir.c_str()).setDefaultFile("index.html").setAuthentication(http_id.c_str(), http_psk.c_str());
     server.on("/listfiles", HTTP_GET, handleListFiles);
     server.on(
         "/file", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, handleFile);
     server.on("/cardinfo", HTTP_GET, handleCardinfo);
     server.on("/systemInfo", systemInfo);
     server.on("/system", HTTP_GET, [](AsyncWebServerRequest *request)
-              { request->send_P(200, "text/html", system_webpage); });
+              { promptAuth(request);
+                request->send_P(200, "text/html", system_webpage); });
+    server.on(
+        "/modCfg", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, handleCfg);
+    server.on("/device", handleDeviceAction);
     server.onNotFound(handleNotFound);
     server.onFileUpload(handleUpload);
     AsyncElegantOTA.begin(&server, http_id.c_str(), http_psk.c_str());
@@ -55,13 +61,17 @@ void begin_web()
 
 void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
 {
+    promptAuth(request);
     if (!index) // open the file on first call and store the file handle in the request object
+    {
         request->_tempFile = SD.open(request->getParam("path")->value() + filename, FILE_WRITE);
-    if (len) // stream the incoming chunk to the opened file
-        request->_tempFile.write(data, len);
+        uploadFile = request->_tempFile.name();
+    }
+    request->_tempFile.write(data, len);
     if (final)
     { // close the file handle as the upload is now done
         request->_tempFile.close();
+        uploadFile = "";
         request->redirect("/");
     }
 }
@@ -74,9 +84,8 @@ void handleListFiles(AsyncWebServerRequest *request)
 
 void handleCardinfo(AsyncWebServerRequest *request)
 {
+    promptAuth(request);
     JSONVar ret;
-    ret["freesd"] = cust::readableSize(SD.totalBytes() - SD.usedBytes());
-    ret["usedsd"] = cust::readableSize(SD.usedBytes());
     ret["val"] = String(SD.usedBytes());
     ret["max"] = String(SD.totalBytes());
     request->send(200, "application/json", JSON.stringify(ret));
@@ -101,6 +110,7 @@ void handleNotFound(AsyncWebServerRequest *request)
 
 void handleFile(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
 {
+    promptAuth(request);
     auto rcvData = JSON.parse((const char *)data);
     String filePath = (const char *)rcvData["path"];
     if (SD.exists(filePath))
@@ -110,7 +120,7 @@ void handleFile(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_
         JSONVar ret;
         if (action == "download")
         {
-            request->send(SD, filePath, String(), true);
+            request->send(SD, filePath);
             return;
         }
         else if (action == "rename")
@@ -134,6 +144,7 @@ void handleFile(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_
 
 void systemInfo(AsyncWebServerRequest *request)
 {
+    promptAuth(request);
     JSONVar ret;
     ret["ERROR_MSG"] = "NONE";
     ret["IP_ADDR"] = WiFi.softAPIP().toString();
@@ -177,9 +188,34 @@ void systemInfo(AsyncWebServerRequest *request)
     request->send(200, "application/json", JSON.stringify(ret));
 }
 
-String getMime(const String &path)
+void handleCfg(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
 {
-    return (const char *)cust::parseJSON("/fileType.json")[path.substring(path.lastIndexOf("."))];
+    promptAuth(request);
+    request->_tempFile = SD.open(cfgPath, FILE_WRITE);
+    request->_tempFile.write(data, len);
+    request->_tempFile.close();
+    JSONVar ret;
+    ret["text"] = "configuration uploaded, pending restart...";
+    ret["file"] = cfgPath;
+    request->send(200, "text/plain", JSON.stringify(ret));
+}
+
+void handleDeviceAction(AsyncWebServerRequest *request)
+{
+    promptAuth(request);
+    String action = request->getParam("action")->value();
+    if (action == "restart")
+    {
+        request->send(200);
+        ESP.restart();
+    }
+    else
+        request->send(400);
+}
+
+const char *getMime(const String &path)
+{
+    return cust::parseJSON(systemDir + "fileType.json")[path.substring(path.lastIndexOf("."))];
 }
 
 void promptAuth(AsyncWebServerRequest *request)

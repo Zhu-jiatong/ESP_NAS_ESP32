@@ -23,12 +23,24 @@ td {
     font-weight: inherit;
 }
 
-.header {
+.fSizeVal {
+    text-align: right;
+}
+
+header {
     background-color: lightblue;
     color: black;
+    padding-left: 25px;
+    padding-right: 25px;
+}
+
+.header {
     font-size: 30pt;
     font-weight: bolder;
-    padding-left: 25px;
+}
+
+#SDInfo {
+    float: right;
 }
 
 .main-text {
@@ -119,4 +131,25 @@ input {
 
 th {
     font-weight: bold;
+}
+
+.breadcrumb {
+    list-style: none;
+    display: inline;
+}
+
+.breadcrumb li {
+    display: inline;
+}
+
+.breadcrumb li:hover {
+    cursor: pointer;
+}
+
+.breadcrumb li+li:after {
+    content: " > ";
+}
+
+.inlineForm {
+    display: inline;
 }
